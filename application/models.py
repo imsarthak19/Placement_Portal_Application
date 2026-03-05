@@ -44,8 +44,8 @@ class Company(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=ist_now)
 
 class Drive(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, index=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False, index=True)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
     eligibility = db.Column(db.String(150), nullable=True)
@@ -63,16 +63,17 @@ class Application(db.Model):
         db.UniqueConstraint('student_id', 'drive_id', name='unique_application'),
     )
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False, index=True)
     drive_id = db.Column(db.Integer, db.ForeignKey('drive.id'), nullable=False)
     status = db.Column(db.String(50), default='applied', nullable=False)
     created_at = db.Column(db.DateTime, default=ist_now)
     comment = db.Column(db.Text, nullable=True)
     updated_at = db.Column(db.DateTime, default=ist_now, onupdate=ist_now)
+    interviews = db.relationship('Interview', backref='application', lazy=True, cascade="all, delete-orphan")
 
 class Interview(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False)
+    application_id = db.Column(db.Integer, db.ForeignKey('application.id'), nullable=False, index=True)
     scheduled_at = db.Column(db.DateTime, nullable=False)
     mode = db.Column(db.String(50), nullable=False)
     location = db.Column(db.String(150), nullable=True)
