@@ -2,11 +2,14 @@
   <div class="signup-panel">
 
     <div class="signup-header">
-      <h1 class="signup-title">Create your account</h1>
-      <p class="signup-subtitle">Join the premium placement management ecosystem.</p>
+      <div class="company-badge">
+        <span class="badge-icon">🏢</span>
+        <span class="badge-label">Recruiter Portal</span>
+      </div>
+      <h1 class="signup-title">Partner with CampusBridge</h1>
+      <p class="signup-subtitle">Create your recruiter account to start hiring our campus talent.</p>
     </div>
 
-    <!-- Add this to login form as welll -->
     <transition name="fade">
       <div v-if="errorMsg" class="alert alert-error">
         <span class="alert-icon">⚠️</span> {{ errorMsg }}
@@ -24,14 +27,18 @@
     </div>
 
     <div class="form-fields">
-      <BaseInput label="Full Name" placeholder="Your Name" v-model="name" />
-      <BaseInput label="Username" placeholder="Choose a username min 4 characters" v-model="username" />
-      <BaseInput label="Institutional Email" placeholder="Your Institutional Email" type="email" v-model="email" />
-      <BaseInput label="Password" type="password" v-model="password" />
+      <BaseInput label="Company Name" placeholder="Your Company Name" v-model="name" />
+      <BaseInput label="Company Email" placeholder="company@example.com" type="email" v-model="email" id="company-email" />
+      <BaseInput label="Username" placeholder="Choose a unique username" v-model="username" id="company-username" />
+      <BaseInput label="Password" type="password" placeholder="Min 8 characters" v-model="password" id="company-password" />
       <BaseInput label="Confirm Password" type="password" placeholder="Re-enter your password" v-model="confirmPassword" />
     </div>
 
-    <BaseButton text="CREATE ACCOUNT →" @click="handleSubmit" />
+    <BaseButton
+      :text="loading ? 'Creating Account...' : 'CREATE ACCOUNT →'"
+      @click="handleSubmit"
+      :disabled="loading"
+    />
 
     <div class="auth-footer">
       <p class="footer-text">
@@ -39,8 +46,8 @@
         <router-link to="/login" class="sign-in-link">Login</router-link>
       </p>
       <p class="footer-text" style="margin-top: 6px;">
-        Signing up as a recruiter?&nbsp;
-        <router-link to="/company-signup" class="sign-in-link">Recruiter Signup</router-link>
+        Signing up as a student?&nbsp;
+        <router-link to="/signup" class="sign-in-link">Student Signup</router-link>
       </p>
     </div>
 
@@ -53,17 +60,18 @@ import BaseInput from '../ui/BaseInput.vue'
 import BaseButton from '../ui/BaseButton.vue'
 
 const name = ref('')
-const username = ref('')
 const email = ref('')
+const username = ref('')
 const password = ref('')
 const confirmPassword = ref('')
-const registered = ref(false)
+
 const loading = ref(false)
 const errorMsg = ref('')
+const registered = ref(false)
 
 function validate() {
-  if (!name.value.trim()) return 'Name is required.'
-  if (!email.value.trim()) return 'Email is required.'
+  if (!name.value.trim()) return 'Company name is required.'
+  if (!email.value.trim()) return 'Company email is required.'
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) return 'Please enter a valid email address.'
   if (!username.value.trim()) return 'Username is required.'
   if (username.value.trim().length < 4) return 'Username must be at least 4 characters.'
@@ -84,7 +92,7 @@ async function handleSubmit() {
 
   loading.value = true
   try {
-    const res = await fetch('http://127.0.0.1:5000/api/student-register', {
+    const res = await fetch('http://127.0.0.1:5000/api/company-register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -125,7 +133,30 @@ async function handleSubmit() {
 .signup-header {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.company-badge {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 20px;
+  padding: 4px 12px;
+  width: fit-content;
+}
+
+.badge-icon {
+  font-size: 0.85rem;
+}
+
+.badge-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #c2410c;
 }
 
 .signup-title {
@@ -137,38 +168,16 @@ async function handleSubmit() {
 }
 
 .signup-subtitle {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #6b7280;
   margin: 0;
+  line-height: 1.5;
 }
 
 .form-fields {
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-
-.auth-footer {
-  text-align: center;
-}
-
-.footer-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-.sign-in-link {
-  font-weight: 700;
-  color: var(--color-primary, #781f19);
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.sign-in-link:hover {
-  opacity: 0.75;
-  text-decoration: underline;
 }
 
 .alert {
@@ -231,13 +240,12 @@ async function handleSubmit() {
   transform: translateY(-4px);
 }
 
-/* Success banner */
 .success-banner {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 11px 16px;
-  border-left: 3px solid var(--color-primary, #008000);
+  border-left: 3px solid #008000;
   background: #e6ffe6;
   border-radius: 6px;
   font-family: 'Inter', sans-serif;
@@ -249,7 +257,7 @@ async function handleSubmit() {
 .success-banner-icon {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--color-primary, #008000);
+  color: #008000;
   flex-shrink: 0;
 }
 

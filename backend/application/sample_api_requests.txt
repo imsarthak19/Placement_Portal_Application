@@ -1,0 +1,22 @@
+To login - 
+{
+  "identifier": "aditya",
+  "password": "student123"
+}
+
+
+To Register a student -
+{
+  "name": "Aditya Sharma",
+  "email": "aditya@email.com",
+  "username": "aditya",
+  "password": "student123"
+}
+
+Company register - 
+{
+  "name": "Infosys Ltd.",
+  "email": "hr@infosys.com",
+  "username": "infosys",
+  "password": "company1234"
+}

@@ -1,5 +1,7 @@
 <template>
   <div class="signup-panel">
+    
+    <!-- # Rememeber to add the error messga ematching to the barnding just like in the signup form, that looks better brand wise -->
     <p v-if="errorMessage" class="error">
       {{ errorMessage }}
     </p>
@@ -16,12 +18,14 @@
 
     <BaseButton text="LOGIN →" @click="handleLogin" />
 
-    <GoogleLogin />
-
     <div class="auth-footer">
-      <p class="footer-text">
-        Don't have an account?&nbsp;
-        <a href="" class="sign-up-link">Sign Up</a>
+      <p class="footer-text" style="margin-top: 6px;">
+        Signing up as a student?&nbsp;
+        <router-link to="/signup" class="sign-in-link">Student Signup</router-link>
+      </p>
+      <p class="footer-text" style="margin-top: 6px;">
+        Signing up as a recruiter?&nbsp;
+        <router-link to="/company-signup" class="sign-in-link">Recruiter Signup</router-link>
       </p>
     </div>
 
@@ -32,7 +36,6 @@
 import { ref } from 'vue'
 import BaseInput from '../ui/BaseInput.vue'
 import BaseButton from '../ui/BaseButton.vue'
-import GoogleLogin from './GoogleLogin.vue'
 import { useRouter } from 'vue-router'
 
 const errorMessage = ref('')
