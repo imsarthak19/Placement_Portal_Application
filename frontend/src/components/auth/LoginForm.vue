@@ -1,5 +1,8 @@
 <template>
   <div class="signup-panel">
+    <p v-if="errorMessage" class="error">
+      {{ errorMessage }}
+    </p>
 
     <div class="signup-header">
       <h1 class="signup-title">Login your account</h1>
@@ -11,7 +14,7 @@
       <BaseInput label="Password" type="password" v-model="password" />
     </div>
 
-    <BaseButton text="LOGIN →" @click="handleSubmit" />
+    <BaseButton text="LOGIN →" @click="handleLogin" />
 
     <GoogleLogin />
 
@@ -30,15 +33,55 @@ import { ref } from 'vue'
 import BaseInput from '../ui/BaseInput.vue'
 import BaseButton from '../ui/BaseButton.vue'
 import GoogleLogin from './GoogleLogin.vue'
+import { useRouter } from 'vue-router'
 
-const name = ref('')
+const errorMessage = ref('')
+const router = useRouter()
+
 const email = ref('')
 const password = ref('')
-const confirmPassword = ref('')
 
-function handleSubmit() {
-    
+async function handleLogin() {
+  errorMessage.value = '' // reset before request
+
+  try {
+    const res = await fetch('http://127.0.0.1:5000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        identifier: email.value,
+        password: password.value
+      })
+    })
+
+    const data = await res.json()
+
+    if (res.ok) {
+      localStorage.setItem('user', JSON.stringify(data))
+
+      const routeMap = {
+        admin: '/admin-dash',
+        recruiter: '/company-dash',
+        student: '/student-dash'
+      }
+
+      const route = routeMap[data.type]
+
+      if (route) {
+        router.push(route)
+      } else {
+        errorMessage.value = 'Unknown user type'
+      }
+
+    } else {
+      errorMessage.value = data.message || 'Invalid credentials'
+    }
+
+  } catch (err) {
+    errorMessage.value = 'Server error. Please try again later.'
+  }
 }
+
 </script>
 
 <style scoped>
@@ -129,5 +172,11 @@ function handleSubmit() {
 .sign-in-link:hover {
   opacity: 0.75;
   text-decoration: underline;
+}
+
+.error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 </style>
