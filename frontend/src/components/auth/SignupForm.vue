@@ -8,6 +8,7 @@
 
     <div class="form-fields">
       <BaseInput label="Full Name" placeholder="Your Name" v-model="name" />
+      <BaseInput label="Username" placeholder="Choose a username min 4 characters" v-model="username" />
       <BaseInput label="Institutional Email" placeholder="Your Institutional Email" type="email" v-model="email" />
       <BaseInput label="Password" type="password" v-model="password" />
       <BaseInput label="Confirm Password" type="password" v-model="confirmPassword" />
@@ -17,15 +18,20 @@
 
     <GoogleLogin />
 
-    <AuthFooter />
+    <div class="auth-footer">
+      <p class="footer-text">
+        Already have an account?&nbsp;
+        <a href="" class="sign-in-link">Sign In</a>
+      </p>
+    </div>
 
-    <div class="bottom-links">
+    <!-- <div class="bottom-links">
       <a href="#">Privacy Policy</a>
       <span class="dot">•</span>
       <a href="#">Terms of Use</a>
       <span class="dot">•</span>
       <a href="#">Support</a>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -37,6 +43,7 @@ import GoogleLogin from './GoogleLogin.vue'
 import AuthFooter from './AuthFooter.vue'
 
 const name = ref('')
+const username = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
@@ -111,5 +118,28 @@ function handleSubmit() {
 .bottom-links .dot {
   color: #9ca3af;
   font-size: 0.6rem;
+}
+
+.auth-footer {
+  text-align: center;
+}
+
+.footer-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.sign-in-link {
+  font-weight: 700;
+  color: var(--color-primary, #781f19);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.sign-in-link:hover {
+  opacity: 0.75;
+  text-decoration: underline;
 }
 </style>
