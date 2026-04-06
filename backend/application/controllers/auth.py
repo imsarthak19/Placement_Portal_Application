@@ -45,6 +45,11 @@ def login():
                 return jsonify({
                     "error": "Recruiter account not approved by admin."
                 }), 403
+            
+            elif account and account.isBlacklisted:
+                return jsonify({
+                    "error": "Recruiter account is blacklisted. Contact support."
+                }), 403
 
     if not account:
         return jsonify({"error": "User not found"}), 404

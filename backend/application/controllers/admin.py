@@ -43,3 +43,31 @@ def approve_company(company_id):
     db.session.commit()
 
     return {"message": "Company approved successfully"}
+
+# Blacklist Logic for Company
+@app.route('/api/admin/blacklist_company/<int:company_id>', methods=['PUT'])
+@jwt_required()
+def blacklist_company(company_id):
+    company = Company.query.get(company_id)
+
+    if not company:
+        return {"message": "Company not found"}, 404
+
+    company.isBlacklisted = True
+    db.session.commit()
+
+    return {"message": "Company blacklisted successfully"}
+
+# Whitelist Logic for Company
+@app.route('/api/admin/whitelist_company/<int:company_id>', methods=['PUT'])
+@jwt_required()
+def whitelist_company(company_id):        
+    company = Company.query.get(company_id)
+
+    if not company:
+        return {"message": "Company not found"}, 404
+
+    company.isBlacklisted = False
+    db.session.commit()
+
+    return {"message": "Company whitelisted successfully"}

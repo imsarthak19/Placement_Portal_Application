@@ -16,6 +16,34 @@
             </div>
         </header>
 
+        <div class="flash-container">
+
+    <transition name="fade">
+        <div 
+        v-if="flashMsg" 
+        class="alert alert-success flash-msg d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" 
+        role="alert">
+        
+        <i class="fas fa-check-circle"></i>
+        <div>{{ flashMsg }}</div>
+
+        </div>
+    </transition>
+
+    <transition name="fade">
+        <div 
+        v-if="flashMsgError" 
+        class="alert alert-danger flash-msg d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" 
+        role="alert">
+        
+        <i class="fas fa-exclamation-circle"></i>
+        <div>{{ flashMsgError }}</div>
+
+        </div>
+    </transition>
+
+</div>
+
         <!-- Stats Grid -->
         <div class="row g-4 mb-5">
             <div v-for="(stat, key) in statConfig" :key="key" class="col-sm-6 col-xl-4">
@@ -124,11 +152,19 @@
                             <span class="text-muted small">{{ company.email }}</span>
                         </div>
                         <div class="status-col">
-                            <span class="status-badge approved">Approved</span>
+                            <span v-if="!company.blacklisted" class="status-badge approved">
+                                Approved
+                            </span>
+                            <span v-else class="status-badge blacklisted">
+                                Blacklisted
+                            </span>
                         </div>
                         <div class="action-col">
-                            <button class="btn-action revoke-btn" @click="revokeCompany(company.id)">
-                                <i class="fas fa-times-circle"></i> Revoke
+                            <button v-if="company.blacklisted" class="btn-action approve-btn" @click="whitelistCompany(company.id)">
+                                <i class="fas fa-check-circle"></i> Whitelist
+                            </button>
+                            <button v-else class="btn-action revoke-btn" @click="revokeCompany(company.id)">
+                                <i class="fas fa-times-circle"></i> Blacklist
                             </button>
                         </div>
                     </div>
@@ -160,7 +196,23 @@ import axios from "axios"
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 
 const companies = ref([])
-const errorMsg = ref('')
+
+const flashMsg = ref('')
+const showFlash = (message) => {
+  flashMsg.value = message
+
+  setTimeout(() => {
+    flashMsg.value = ""
+  }, 2000)
+}
+
+const errorMsg = (message) => {
+  flashMsgError.value = message
+
+  setTimeout(() => {
+    flashMsgError.value = ""
+  }, 2000)
+}
 
 // -- Stats Data --
 const stats = computed(() => ({
@@ -215,7 +267,7 @@ const totalCompaniesCount = computed(() => companies.value.length)
 const pendingCompanies = computed(() => companies.value.filter(c => !c.approved))
 const pendingCompaniesCount = computed(() => pendingCompanies.value.length)
 const activeCompanies = computed(() => companies.value.filter(c => c.approved))
-const blacklistedCompaniesCount = computed(() => companies.value.filter(c => c.isBlacklisted).length)
+const blacklistedCompaniesCount = computed(() => companies.value.filter(c => c.blacklisted).length)
 
 // Pagination logic
 const itemsPerPage = 5
@@ -237,11 +289,13 @@ const paginatedActive = computed(() => {
 })
 
 const approveCompany = async (companyId) => {
+    flashMsg.value = ''
     try {
         const token = localStorage.getItem("token")
 
             if (!token) {
                 console.error("No token found")
+                errorMsg('Authentication error. Please log in again.')
                 return
                 }
 
@@ -256,6 +310,7 @@ const approveCompany = async (companyId) => {
         )
 
         console.log("Approved!")
+        showFlash('Company approved successfully.')
 
         // update UI
         companies.value = companies.value.map(c => {
@@ -267,11 +322,84 @@ const approveCompany = async (companyId) => {
 
     } catch (error) {
     console.error("Error:", error.response?.data || error.message)
+    errorMsg('Failed to approve company. Please try again.')
   }
 }
 
-const revokeCompany = (id) => {
-    console.log("Revoke company:", id)
+const revokeCompany = async (companyId) => {
+    flashMsg.value = ''
+    try {
+        const token = localStorage.getItem("token")
+
+            if (!token) {
+                console.error("No token found")
+                errorMsg('Authentication error. Please log in again.')
+                return
+                }
+
+        await axios.put(
+            `http://127.0.0.1:5555/api/admin/blacklist_company/${companyId}`,
+            {},
+            {
+                headers: {
+                Authorization: `Bearer ${token}`
+                }
+            }
+        )
+
+        console.log("Company Blacklisted!")
+        showFlash('Company blacklisted successfully.')
+
+        // update UI
+        companies.value = companies.value.map(c => {
+        if (c.id === companyId) {
+            return { ...c, blacklisted: true }
+        }
+        return c
+        })
+
+    } catch (error) {
+    console.error("Error:", error.response?.data || error.message)
+    errorMsg('Failed to blacklist company. Please try again.')
+  }
+}
+
+const whitelistCompany = async (companyId) => {
+    flashMsg.value = ''
+    try {
+        const token = localStorage.getItem("token")
+
+            if (!token) {
+                console.error("No token found")
+                errorMsg('Authentication error. Please log in again.')
+                return
+                }
+
+        await axios.put(
+            `http://127.0.0.1:5555/api/admin/whitelist_company/${companyId}`,
+            {},
+            {
+                headers: {
+                Authorization: `Bearer ${token}`
+                }
+            }
+        )
+
+        console.log("Company Whitelisted!")
+        showFlash('Company whitelisted successfully.')
+
+        // update UI
+        companies.value = companies.value.map(c => {
+        if (c.id === companyId) {
+            return { ...c, blacklisted: false }
+        }
+        return c
+        })
+
+    } catch (error) {
+    console.error("Error:", error.response?.data || error.message)
+    errorMsg('Failed to whitelist company. Please try again.')
+  }
 }
 
 </script>
@@ -454,6 +582,11 @@ const revokeCompany = (id) => {
     white-space: nowrap;
 }
 
+.blacklisted{
+    background-color: #ffe5e5;
+    color: #c53030;
+}
+
 .btn-action {
     display: inline-flex;
     align-items: center;
@@ -576,5 +709,31 @@ const revokeCompany = (id) => {
     background: var(--color-primary);
     color: white;
     font-weight: 600;
+}
+
+.flash-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* space between messages */
+}
+
+.flash-msg {
+    min-width: 250px;
+}
+
+/* transition animations */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
