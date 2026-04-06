@@ -1,5 +1,5 @@
 <template>
-  <div class="input-group">
+  <div class="base-input-group">
     <label class="input-label">{{ label }}</label>
     <div class="input-wrapper" :class="{ focused }">
       <span class="input-icon">
@@ -75,7 +75,7 @@ function onInput(event) {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-.input-group {
+.base-input-group {
   display: flex;
   flex-direction: column;
   gap: 6px;

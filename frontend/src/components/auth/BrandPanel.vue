@@ -24,8 +24,8 @@
 
 .brand-panel {
   position: relative;
-  width: 45%;
-  min-height: 100vh;
+  width: 100%;
+  height: 100%;
   background-color: var(--color-primary);
   color: white;
   display: flex;

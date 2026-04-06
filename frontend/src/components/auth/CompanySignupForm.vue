@@ -1,56 +1,62 @@
 <template>
-  <div class="signup-panel">
-
-    <div class="signup-header">
-      <div class="company-badge">
-        <span class="badge-icon">🏢</span>
-        <span class="badge-label">Recruiter Portal</span>
+  <div class="signup-container mx-auto">
+    <!-- Header Section -->
+    <div class="text-start mb-4">
+      <div class="d-inline-flex align-items-center gap-1 bg-orange-soft border border-orange-subtle rounded-pill px-2 py-0 mb-1">
+        <span class="fs-7">🏢</span>
+        <span class="text-orange-dark fw-semibold small text-uppercase">Recruiter Portal</span>
       </div>
-      <h1 class="signup-title">Partner with CampusBridge</h1>
-      <p class="signup-subtitle">Create your recruiter account to start hiring our campus talent.</p>
+      <h1 class="fs-3 fw-extrabold text-dark mb-2">Create your account</h1>
+      <p class="text-muted mb-0 lh-sm">Start hiring our campus talent today.</p>
     </div>
 
-    <transition name="fade">
-      <div v-if="errorMsg" class="alert alert-error">
-        <span class="alert-icon">⚠️</span> {{ errorMsg }}
-      </div>
-    </transition>
-    <transition name="fade">
-      <div v-if="successMsg" class="alert alert-success">
-        <span class="alert-icon">✅</span> {{ successMsg }}
-      </div>
-    </transition>
-
-    <div v-if="registered" class="success-banner">
-      <span class="success-banner-icon">✓</span>
-      <span>Registration successful! You can now <router-link to="/login" class="success-link">login</router-link>.</span>
+    <!-- Error/Success Alerts -->
+    <div class="mb-4">
+      <transition name="fade">
+        <div v-if="errorMsg" class="alert alert-danger d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" role="alert">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>{{ errorMsg }}</div>
+        </div>
+      </transition>
+      
+      <transition name="fade">
+        <div v-if="registered" class="alert alert-success d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" role="alert">
+          <i class="fas fa-check-circle"></i>
+          <div>Registration successful! You can now <router-link to="/login" class="fw-bold text-brand-primary">login</router-link>.</div>
+        </div>
+      </transition>
     </div>
 
-    <div class="form-fields">
+    <!-- Form Fields -->
+    <div class="d-grid gap-3 mb-4">
       <BaseInput label="Company Name" placeholder="Your Company Name" v-model="name" />
-      <BaseInput label="Company Email" placeholder="company@example.com" type="email" v-model="email" id="company-email" />
-      <BaseInput label="Username" placeholder="Choose a unique username" v-model="username" id="company-username" />
-      <BaseInput label="Password" type="password" placeholder="Min 8 characters" v-model="password" id="company-password" />
+      <BaseInput label="Company Email" placeholder="company@example.com" type="email" v-model="email" />
+      <BaseInput label="Username" placeholder="Choose a unique username" v-model="username" />
+      <BaseInput label="Password" type="password" placeholder="Min 8 characters" v-model="password" />
       <BaseInput label="Confirm Password" type="password" placeholder="Re-enter your password" v-model="confirmPassword" />
     </div>
 
-    <BaseButton
-      :text="loading ? 'Creating Account...' : 'CREATE ACCOUNT →'"
-      @click="handleSubmit"
-      :disabled="loading"
-    />
-
-    <div class="auth-footer">
-      <p class="footer-text">
-        Already have an account?&nbsp;
-        <router-link to="/login" class="sign-in-link">Login</router-link>
-      </p>
-      <p class="footer-text" style="margin-top: 6px;">
-        Signing up as a student?&nbsp;
-        <router-link to="/signup" class="sign-in-link">Student Signup</router-link>
-      </p>
+    <!-- Submit Button -->
+    <div class="mb-4">
+      <BaseButton 
+        :text="loading ? 'Creating Account...' : 'CREATE ACCOUNT →'" 
+        @click="handleSubmit" 
+        :disabled="loading"
+        class="w-100 py-3 rounded-3"
+      />
     </div>
 
+    <!-- Footer Links -->
+    <div class="text-center">
+      <p class="text-muted small mb-2">
+        Already have an account? 
+        <router-link to="/login" class="text-brand-primary fw-bold text-decoration-none hover-underline">Login</router-link>
+      </p>
+      <p class="text-muted small mb-0">
+        Signing up as a student? 
+        <router-link to="/signup" class="text-brand-primary fw-bold text-decoration-none hover-underline">Student Signup</router-link>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -64,7 +70,6 @@ const email = ref('')
 const username = ref('')
 const password = ref('')
 const confirmPassword = ref('')
-
 const loading = ref(false)
 const errorMsg = ref('')
 const registered = ref(false)
@@ -83,6 +88,7 @@ function validate() {
 
 async function handleSubmit() {
   errorMsg.value = ''
+  registered.value = false
 
   const validationError = validate()
   if (validationError) {
@@ -110,6 +116,12 @@ async function handleSubmit() {
       errorMsg.value = data.error || 'Registration failed. Please try again.'
     } else {
       registered.value = true
+      // Clear fields
+      name.value = ''
+      email.value = ''
+      username.value = ''
+      password.value = ''
+      confirmPassword.value = ''
     }
   } catch (err) {
     errorMsg.value = 'Network error. Please check your connection.'
@@ -120,154 +132,51 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-.signup-panel {
-  width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  font-family: 'Inter', sans-serif;
+.signup-container {
+  max-width: 420px;
 }
 
-.signup-header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.fw-extrabold {
+  font-weight: 800;
 }
 
-.company-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 20px;
-  padding: 4px 12px;
-  width: fit-content;
+.text-brand-primary {
+  color: var(--color-primary, #781f19);
 }
 
-.badge-icon {
-  font-size: 0.85rem;
+.hover-underline:hover {
+  text-decoration: underline !important;
 }
 
-.badge-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
+/* Custom Recruiter Badge Styling */
+.bg-orange-soft {
+  background-color: #fff7ed;
+}
+.text-orange-dark {
   color: #c2410c;
 }
-
-.signup-title {
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0;
-  line-height: 1.15;
+.ls-wider {
+  letter-spacing: 0.1em;
 }
 
-.signup-subtitle {
-  font-size: 0.88rem;
-  color: #6b7280;
-  margin: 0;
-  line-height: 1.5;
+/* Alert overrides */
+.alert-danger {
+  background-color: #fff5f5;
+  color: #c53030;
 }
-
-.form-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.alert {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.alert-error {
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  color: #b91c1c;
-}
-
 .alert-success {
-  display: none;
+  background-color: #f0fff4;
+  color: #2f855a;
 }
 
-.alert-icon {
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.auth-footer {
-  text-align: center;
-}
-
-.footer-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-.sign-in-link {
-  font-weight: 700;
-  color: var(--color-primary, #781f19);
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.sign-in-link:hover {
-  opacity: 0.75;
-  text-decoration: underline;
-}
-
-/* Transition */
+/* Transitions */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-4px);
-}
-
-.success-banner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 16px;
-  border-left: 3px solid #008000;
-  background: #e6ffe6;
-  border-radius: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #0f172a;
-}
-
-.success-banner-icon {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #008000;
-  flex-shrink: 0;
-}
-
-.success-link {
-  font-weight: 700;
-  color: var(--color-primary, #781f19);
-  text-decoration: none;
-}
-
-.success-link:hover {
-  text-decoration: underline;
+  transform: translateY(-8px);
 }
 </style>

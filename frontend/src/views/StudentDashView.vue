@@ -1,3 +1,3 @@
 <template>
-    This is the Student Dashboard
+  This is the Student dashboard
 </template>

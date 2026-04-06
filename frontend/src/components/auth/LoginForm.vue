@@ -1,32 +1,58 @@
 <template>
-  <div class="signup-panel">
+  <div class="login-container w-100">
     
-    <!-- # Rememeber to add the error messga ematching to the barnding just like in the signup form, that looks better brand wise -->
-    <p v-if="errorMessage" class="error">
-      {{ errorMessage }}
-    </p>
+    <!-- Error Message -->
+    <transition name="fade">
+        <div v-if="errorMsg" class="alert alert-danger d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" role="alert">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>{{ errorMsg }}</div>
+        </div>
+    </transition>
 
-    <div class="signup-header">
-      <h1 class="signup-title">Login your account</h1>
-      <p class="signup-subtitle">Welcome back! Enter your details to access your dashboard.</p>
+    <!-- Header -->
+    <div class="login-header mb-5">
+      <h1 class="display-6 fw-bolder text-dark mb-2 ls-tight">Login to account</h1>
+      <p class="text-muted mb-0">Welcome back! Please enter your details to access your dashboard.</p>
+      <div class="brand-divider mt-3"></div>
     </div>
 
-    <div class="form-fields">
-      <BaseInput label="Institutional Email or Username" placeholder="Your Institutional Email or Username" type="text" v-model="email" />
-      <BaseInput label="Password" type="password" v-model="password" />
+    <!-- Form Fields -->
+    <div class="form-fields d-grid gap-4 mb-5">
+      <BaseInput 
+        label="Email or Username" 
+        placeholder="Enter your email or username" 
+        type="text" 
+        v-model="email" 
+      />
+      <div class="password-field-wrapper">
+        <BaseInput 
+          label="Password" 
+          placeholder="Enter your password"
+          type="password" 
+          v-model="password" 
+        />
+        <div class="text-end mt-2">
+          <a href="#" class="forgot-password-link">Forgot password?</a>
+        </div>
+      </div>
     </div>
 
-    <BaseButton text="LOGIN →" @click="handleLogin" />
+    <!-- Action Button -->
+    <div class="action-section mb-5">
+      <BaseButton text="SIGN IN TO DASHBOARD →" @click="handleLogin" />
+    </div>
 
-    <div class="auth-footer">
-      <p class="footer-text" style="margin-top: 6px;">
-        Signing up as a student?&nbsp;
-        <router-link to="/signup" class="sign-in-link">Student Signup</router-link>
-      </p>
-      <p class="footer-text" style="margin-top: 6px;">
-        Signing up as a recruiter?&nbsp;
-        <router-link to="/company-signup" class="sign-in-link">Recruiter Signup</router-link>
-      </p>
+    <div class="auth-footer py-4 border-top border-light">
+      <div class="row g-3">
+        <div class="col-sm-6 text-center text-sm-start">
+          <p class="text-muted small mb-1">New student?</p>
+          <router-link to="/signup" class="brand-link">Student Signup</router-link>
+        </div>
+        <div class="col-sm-6 text-center text-sm-end">
+          <p class="text-muted small mb-1">Hiring talent?</p>
+          <router-link to="/company-signup" class="brand-link">Recruiter Signup</router-link>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -38,14 +64,14 @@ import BaseInput from '../ui/BaseInput.vue'
 import BaseButton from '../ui/BaseButton.vue'
 import { useRouter } from 'vue-router'
 
-const errorMessage = ref('')
+const errorMsg = ref('')
 const router = useRouter()
 
 const email = ref('')
 const password = ref('')
 
 async function handleLogin() {
-  errorMessage.value = '' // reset before request
+  errorMsg.value = '' // reset before request
 
   try {
     const res = await fetch('http://127.0.0.1:5000/api/login', {
@@ -73,113 +99,76 @@ async function handleLogin() {
       if (route) {
         router.push(route)
       } else {
-        errorMessage.value = 'Unknown user type'
+        errorMsg.value = 'Unknown user type'
       }
 
     } else {
-      errorMessage.value = data.message || 'Invalid credentials'
+      errorMsg.value = data.message || 'Invalid credentials'
     }
 
   } catch (err) {
-    errorMessage.value = 'Server error. Please try again later.'
+    errorMsg.value = 'Server error. Please try again later.'
   }
 }
-
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-.signup-panel {
-  width: 420px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.login-container {
   font-family: 'Inter', sans-serif;
 }
 
-/* Header */
-.signup-header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.ls-tight {
+  letter-spacing: -0.025em;
 }
 
-.signup-title {
-  font-size: 1.85rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0;
-  line-height: 1.15;
+.brand-divider {
+  width: 40px;
+  height: 4px;
+  background-color: var(--color-secondary, #d6a650);
+  border-radius: 2px;
 }
 
-.signup-subtitle {
+.brand-link {
+  font-weight: 700;
   font-size: 0.9rem;
-  color: #6b7280;
-  margin: 0;
+  color: var(--color-primary, #781f19);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-block;
 }
 
-/* Form fields */
-.form-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.brand-link:hover {
+  color: #5a1712;
+  transform: translateX(3px);
+  text-decoration: underline;
 }
 
-/* Bottom footer links */
-.bottom-links {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.bottom-links a {
-  font-size: 0.7rem;
+.forgot-password-link {
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: #9ca3af;
+  color: #6b7280;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.bottom-links a:hover {
-  color: #374151;
-}
-
-.bottom-links .dot {
-  color: #9ca3af;
-  font-size: 0.6rem;
-}
-
-.auth-footer {
-  text-align: center;
-}
-
-.footer-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-.sign-in-link {
-  font-weight: 700;
+.forgot-password-link:hover {
   color: var(--color-primary, #781f19);
-  text-decoration: none;
-  transition: opacity 0.2s ease;
 }
 
-.sign-in-link:hover {
-  opacity: 0.75;
-  text-decoration: underline;
+/* Alert styling overrides */
+.alert-danger {
+  background-color: #fff5f5;
+  color: #c53030;
 }
 
-.error {
-  color: red;
-  font-size: 14px;
-  margin-bottom: 10px;
+.alert-success {
+  background-color: #f0fff4;
+  color: #2f855a;
+}
+
+.fw-extrabold {
+  font-weight: 800;
 }
 </style>

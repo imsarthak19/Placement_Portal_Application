@@ -1,3 +1,3 @@
 <template>
-    This is the Company Dashboard
+  This is the company dash
 </template>

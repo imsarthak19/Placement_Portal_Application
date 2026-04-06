@@ -31,6 +31,7 @@ class Company(db.Model, UserMixin):
     email = db.Column(db.String(150), unique=True, nullable=False, index=True)
     password = db.Column(db.String(150), nullable=False)
     name = db.Column(db.String(150), unique=True, nullable=False)
+    approved = db.Column(db.Boolean, default=False, nullable=False)
     description = db.Column(db.Text, nullable=True)
     category = db.Column(db.String(150), nullable=True)
     scale = db.Column(db.String(150), nullable=True)
