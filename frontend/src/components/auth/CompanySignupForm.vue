@@ -98,7 +98,7 @@ async function handleSubmit() {
 
   loading.value = true
   try {
-    const res = await fetch('http://127.0.0.1:5000/api/company-register', {
+    const res = await fetch('http://127.0.0.1:5555/api/company-register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

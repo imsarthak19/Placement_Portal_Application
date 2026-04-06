@@ -74,7 +74,7 @@ async function handleLogin() {
   errorMsg.value = '' // reset before request
 
   try {
-    const res = await fetch('http://127.0.0.1:5000/api/login', {
+    const res = await fetch('http://127.0.0.1:5555/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -86,6 +86,7 @@ async function handleLogin() {
     const data = await res.json()
 
     if (res.ok) {
+      localStorage.setItem("token", data.token)
       localStorage.setItem('user', JSON.stringify(data))
 
       const routeMap = {
@@ -103,7 +104,7 @@ async function handleLogin() {
       }
 
     } else {
-      errorMsg.value = data.message || 'Invalid credentials'
+      errorMsg.value = data.error || data.message || 'Invalid credentials'
     }
 
   } catch (err) {

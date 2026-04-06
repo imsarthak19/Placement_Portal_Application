@@ -23,6 +23,23 @@ def get_companies():
             "id": c.id,
             "name": c.name,
             "email": c.email,
-            "approved": c.approved
+            "approved": c.approved,
+            "icon": c.logo,
+            "industry": c.industry,
+            "blacklisted": c.isBlacklisted
         } for c in companies
     ])
+
+# Approve Logic for Company
+@app.route('/api/admin/approve_company/<int:company_id>', methods=['PUT'])
+@jwt_required()
+def approve_company(company_id):
+    company = Company.query.get(company_id)
+
+    if not company:
+        return {"message": "Company not found"}, 404
+
+    company.approved = True
+    db.session.commit()
+
+    return {"message": "Company approved successfully"}

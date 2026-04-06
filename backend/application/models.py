@@ -33,7 +33,7 @@ class Company(db.Model, UserMixin):
     name = db.Column(db.String(150), unique=True, nullable=False)
     approved = db.Column(db.Boolean, default=False, nullable=False)
     description = db.Column(db.Text, nullable=True)
-    category = db.Column(db.String(150), nullable=True)
+    industry = db.Column(db.String(150), nullable=True)
     scale = db.Column(db.String(150), nullable=True)
     headOffice = db.Column(db.String(150), nullable=True)
     locations = db.Column(db.String(150), nullable=True)
@@ -42,6 +42,7 @@ class Company(db.Model, UserMixin):
     pocName = db.Column(db.String(150), nullable=True)
     pocEmail = db.Column(db.String(150), nullable=True)
     drives = db.relationship('Drive', backref='company', lazy=True)
+    isBlacklisted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=ist_now)
 
 class Drive(db.Model):

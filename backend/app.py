@@ -17,7 +17,7 @@ CORS(app,
      origins=["http://localhost:5173"],
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "OPTIONS"])
+     methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"])
 
 # -------------------- Extensions --------------------
 
@@ -64,4 +64,7 @@ from application.controllers import auth, system, admin
 # -------------------- Run App --------------------
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # FIX: Changed default port from 5000 to 5555
+    # GLITCH: macOS AirPlay Receiver occupies port 5000 by default, 
+    # causing a 403 Forbidden error and preventing login/registration actions.
+    app.run(debug=True, port=5555)

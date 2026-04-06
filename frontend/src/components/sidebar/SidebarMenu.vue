@@ -2,13 +2,13 @@
   <nav class="nav nav-pills flex-column px-3 h-100">
     <!-- Main Section -->
     <div class="menu-section mb-5">
-      <p class="section-label ms-3 small mb-3 text-uppercase fw-bold text-white opacity-50">Main</p>
+      <p class="section-label ms-3 small mb-3 text-uppercase fw-bold text-white opacity-75">Main</p>
       <div class="d-grid gap-1">
         <router-link 
           v-for="item in currentMenu" 
           :key="item.path" 
           :to="item.path" 
-          class="nav-link dashboard-link d-flex align-items-center gap-3 py-2 px-3 rounded-pill"
+          class="nav-link dashboard-link d-flex align-items-center gap-3 py-2 px-3"
           active-class="active"
         >
           <i :class="[item.icon, 'menu-icon']"></i>
@@ -22,7 +22,7 @@
       <div class="d-grid gap-1">
         <router-link 
           to="/settings" 
-          class="nav-link dashboard-link d-flex align-items-center gap-3 py-2 px-3 rounded-pill"
+          class="nav-link dashboard-link d-flex align-items-center gap-3 py-2 px-3"
           active-class="active"
         >
           <i class="fas fa-cog menu-icon"></i>
@@ -31,7 +31,7 @@
         
         <button 
           @click="handleLogout" 
-          class="nav-link dashboard-link logout-btn d-flex align-items-center gap-3 py-2 px-3 rounded-pill border-0 text-start w-100"
+          class="nav-link dashboard-link logout-btn d-flex align-items-center gap-3 py-2 px-3 border-0 text-start w-100"
         >
           <i class="fas fa-sign-out-alt menu-icon"></i>
           <span class="menu-text">Logout</span>
