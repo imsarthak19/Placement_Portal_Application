@@ -15,17 +15,17 @@
 
 <script setup>
 defineProps({
-  label: { type: String, required: true },
-  value: { type: [Number, String], required: true },
-  icon: { type: String, default: 'fas fa-chart-line' },
-  bgClass: { type: String, default: 'bg-primary border border-primary border-opacity-10' },
-  textClass: { type: String, default: 'text-primary' },
-  change: { type: String, default: '' },
-  changeClass: { type: String, default: '' }
+    label: { type: String, required: true },
+    value: { type: [Number, String], required: true },
+    icon: { type: String, default: 'fas fa-chart-line' },
+    bgClass: { type: String, default: 'bg-primary border border-primary border-opacity-10' },
+    textClass: { type: String, default: 'text-primary' },
+    change: { type: String, default: '' },
+    changeClass: { type: String, default: '' }
 })
 </script>
 
-<style scoped>
+<style>
 .custom-stat-card {
     transition: all 0.3s ease;
 }

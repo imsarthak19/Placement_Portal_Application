@@ -1,169 +1,177 @@
 <template>
 <DashboardLayout role="admin">
-    <div class="admin-dashboard">
-        <header class="dashboard-header">
-            <div class="header-content">
-                <div class="headder-tag">
-                    MANAGEMENT CONSOLE
-                </div>
-                <h1>Company Management</h1>
-            </div>
-            <div class="header-actions">
-                <button class="btn-primary">
-                    <i class="fas fa-download"></i>
-                    Export List
-                </button>
-            </div>
-        </header>
+<div class="admin-dashboard">
+    <!-- Page header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="headder-tag">MANAGEMENT CONSOLE</div>
+            <h1>Company Management</h1>
+        </div>
+        <div class="header-actions">
+            <button class="btn-primary"><i class="fas fa-download"></i>Export List</button>
+        </div>
+    </header>
 
-        <div class="flash-container">
-
+    <!-- Alert Messages -->
+    <div class="flash-container">
     <transition name="fade">
         <div 
-        v-if="flashMsg" 
-        class="alert alert-success flash-msg d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" 
-        role="alert">
-        
-        <i class="fas fa-check-circle"></i>
-        <div>{{ flashMsg }}</div>
-
+            v-if="flashMsg" 
+            class="alert alert-success flash-msg d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" 
+            role="alert">
+            <i class="fas fa-check-circle"></i>
+            <div>{{ flashMsg }}</div>
         </div>
     </transition>
-
     <transition name="fade">
         <div 
-        v-if="flashMsgError" 
-        class="alert alert-danger flash-msg d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" 
-        role="alert">
-        
-        <i class="fas fa-exclamation-circle"></i>
-        <div>{{ flashMsgError }}</div>
-
+            v-if="flashMsgError" 
+            class="alert alert-danger flash-msg d-flex align-items-center gap-2 border-0 shadow-sm rounded-3 py-3 px-4" 
+            role="alert">
+            
+            <i class="fas fa-exclamation-circle"></i>
+            <div>{{ flashMsgError }}</div>
         </div>
     </transition>
 
 </div>
 
-        <!-- Stats Grid -->
-        <div class="row g-4 mb-5">
-            <div v-for="(stat, key) in statConfig" :key="key" class="col-sm-6 col-xl-4">
-                <StatCard 
-                    :label="stat.label" 
-                    :value="stats[key] || 0" 
-                    :icon="stat.icon" 
-                    :bgClass="stat.bgClass" 
-                    :textClass="stat.textClass" 
-                    :change="stat.change" 
-                    :changeClass="stat.changeClass" 
-                />
-            </div>
+    <!-- Stats Grid -->
+    <div class="row g-4 mb-5">
+        <div v-for="(stat, key) in statConfig" :key="key" class="col-sm-6 col-xl-4">
+            <StatCard 
+                :label="stat.label" 
+                :value="stats[key] || 0" 
+                :icon="stat.icon" 
+                :bgClass="stat.bgClass" 
+                :textClass="stat.textClass" 
+                :change="stat.change" 
+                :changeClass="stat.changeClass" 
+            />
         </div>
+    </div>
 
-        <div class="dashboard-content-grid">
-            <section class="upcoming-drives card">
-                <div class="card-header">
-                    <h3>Pending Approvals</h3>
-                    <p class="text-muted small mb-0">Companies awaiting admin approval.</p>
-                </div>
-                <Table :columns="companyColumns" :data="paginatedPending">
-                    <template #row="{ item: company }">
-                        <td class="py-3 px-4">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="drive-logo">
-                                    {{ company.icon || '🏢' }}
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold text-dark">{{ company.name }}</h6>
-                                </div>
+    <div class="dashboard-content-grid">
+
+        <!-- Unapproved Companies -->
+        <section class="upcoming-drives card">
+            <div class="card-header">
+                <h3>Pending Approvals</h3>
+                <p class="text-muted small mb-0">Companies awaiting admin approval.</p>
+            </div>
+
+            <Table :columns="companyColumns" :data="paginatedPending">
+                <template #row="{ item: company }">
+
+                    <td class="py-3 px-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="drive-logo">{{ company.icon || '🏢' }}</div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">{{ company.name }}</h6>
                             </div>
-                        </td>
-                        <td class="py-3 px-3">
-                            <span class="text-muted fw-medium">{{ company.industry || 'Technology' }}</span>
-                        </td>
-                        <td class="py-3 px-3 text-muted">
-                            {{ company.email }}
-                        </td>
-                        <td class="py-3 px-3 text-center">
-                            <span class="status-badge pending">Approval Pending</span>
-                        </td>
-                        <td class="py-3 px-4 text-center">
-                            <button class="btn-action approve-btn" @click="approveCompany(company.id)">
-                                <i class="fas fa-check-circle"></i> Approve
-                            </button>
-                        </td>
-                    </template>
-                    <template #empty>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <div class="fs-1 mb-3 opacity-50">📋</div>
-                            <h5 class="fw-bold">Approval queue is empty.</h5>
-                        </td>
-                    </template>
-                </Table>
+                        </div>
+                    </td>
+                        
+                    <td class="py-3 px-3">
+                        <span class="text-muted fw-medium">{{ company.industry || 'Technology' }}</span>
+                    </td>
+
+                    <td class="py-3 px-3 text-muted">
+                        {{ company.email }}
+                        
+                    </td>
+
+                    <td class="py-3 px-3 text-center">
+                        <span class="status-badge pending">Approval Pending</span>
+                    </td>
+                        
+                    <td class="py-3 px-4 text-center">
+                            
+                        <button class="btn-action approve-btn" @click="approveCompany(company.id)">
+                            <i class="fas fa-check-circle"></i> Approve
+                        </button>
+                    </td>
+                </template>
+
+                <!-- If there is no data to show -->
+                <template #empty>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <div class="fs-1 mb-3 opacity-50">📋</div>
+                        <h5 class="fw-bold">Approval queue is empty.</h5>
+                    </td>
+                </template>
+            </Table>
                 
                 <!-- Page Pending -->
-                <div v-if="pendingTotalPages > 1" class="pagination-controls mt-4">
-                    <button class="btn-pagination" :disabled="pendingCurrentPage === 1" @click="pendingCurrentPage--">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button v-for="page in pendingTotalPages" :key="page"
-                            :class="['btn-pagination-number', { active: pendingCurrentPage === page }]"
-                            @click="pendingCurrentPage = page">
-                        {{ page }}
-                    </button>
-                    <button class="btn-pagination" :disabled="pendingCurrentPage === pendingTotalPages" @click="pendingCurrentPage++">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            </section>
+            <div v-if="pendingTotalPages > 1" class="pagination-controls mt-4">
+                <button class="btn-pagination" :disabled="pendingCurrentPage === 1" @click="pendingCurrentPage--">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button v-for="page in pendingTotalPages" :key="page"
+                    :class="['btn-pagination-number', { active: pendingCurrentPage === page }]"
+                    @click="pendingCurrentPage = page">
+                    {{ page }}
+                </button>
+                <button class="btn-pagination" :disabled="pendingCurrentPage === pendingTotalPages" @click="pendingCurrentPage++">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
 
-            <section class="upcoming-drives card my-4">
-                <div class="card-header">
-                    <h3>Active Recruiters</h3>
-                </div>
-                <Table :columns="companyColumns" :data="paginatedActive">
-                    <template #row="{ item: company }">
-                        <td class="py-3 px-4">
-                            <a :href="`/admin/company/${company.id}`" class="text-decoration-none">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="drive-logo">
-                                        <img v-if="company.icon" :src="company.icon" alt="Logo" class="img-fluid rounded-3" style="width: 100%; height: 100%; object-fit: contain;">
-                                        <span v-else>🏢</span>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0 fw-bold text-dark">{{ company.name }}</h6>
-                                    </div>
-                                </div>
-                            </a>
-                        </td>
-                        <td class="py-3 px-3">
-                            <span class="text-muted fw-medium">{{ company.industry }}</span>
-                        </td>
-                        <td class="py-3 px-3 text-muted">
-                            {{ company.email }}
-                        </td>
-                        <td class="py-3 px-3 text-center">
-                            <span v-if="!company.blacklisted" class="status-badge approved">
-                                Active
-                            </span>
-                            <span v-else class="status-badge blacklisted">
-                                Blacklisted
-                            </span>
-                        </td>
-                        <td class="py-3 px-4 text-center">
-                            <button v-if="company.blacklisted" class="btn-action approve-btn" @click="whitelistCompany(company.id)">
-                                <i class="fas fa-check-circle"></i> Whitelist
-                            </button>
-                            <button v-else class="btn-action revoke-btn" @click="revokeCompany(company.id)">
-                                <i class="fas fa-times-circle"></i> Blacklist
-                            </button>
-                        </td>
-                    </template>
-                    <template #empty>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <div class="fs-1 mb-3 opacity-50">📋</div>
-                            <h5 class="fw-bold">There are no active companies.</h5>
-                        </td>
-                    </template>
+        <!-- All cmpanies Section -->
+        <section class="upcoming-drives card my-4">
+            <div class="card-header">
+                <h3>Active Recruiters</h3>
+            </div>
+
+            <Table :columns="companyColumns" :data="paginatedActive">
+                <template #row="{ item: company }">
+
+                <td class="py-3 px-4">
+                    <a :href="`/admin/company/${company.id}`" class="text-decoration-none">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="drive-logo">
+                                <img v-if="company.icon" :src="company.icon" alt="Logo" class="img-fluid rounded-3" style="width: 100%; height: 100%; object-fit: contain;">
+                                <span v-else>🏢</span>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold text-dark">{{ company.name }}</h6>
+                            </div>
+                        </div>
+                    </a>
+                    </td>
+
+                    <td class="py-3 px-3">
+                        <span class="text-muted fw-medium">{{ company.industry }}</span>
+                    </td>
+
+                    <td class="py-3 px-3 text-muted">{{ company.email }}</td>
+
+                    <td class="py-3 px-3 text-center">
+                        <span v-if="!company.blacklisted" class="status-badge approved">
+                            Active
+                        </span>
+                        <span v-else class="status-badge blacklisted">
+                            Blacklisted
+                        </span>
+                    </td>
+
+                    <td class="py-3 px-4 text-center">
+                        <button v-if="company.blacklisted" class="btn-action approve-btn" @click="whitelistCompany(company.id)">
+                            <i class="fas fa-check-circle"></i> Whitelist
+                        </button>
+                        <button v-else class="btn-action revoke-btn" @click="revokeCompany(company.id)">
+                            <i class="fas fa-times-circle"></i> Blacklist
+                        </button>
+                    </td>
+                </template>
+
+                <template #empty>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <div class="fs-1 mb-3 opacity-50">📋</div>
+                        <h5 class="fw-bold">There are no active companies.</h5>
+                    </td>
+                </template>
                 </Table>
                 
                 <!-- Page Active -->
@@ -172,18 +180,19 @@
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <button v-for="page in activeTotalPages" :key="page"
-                            :class="['btn-pagination-number', { active: activeCurrentPage === page }]"
-                            @click="activeCurrentPage = page">
+                        :class="['btn-pagination-number', { active: activeCurrentPage === page }]"
+                        @click="activeCurrentPage = page">
                         {{ page }}
                     </button>
                     <button class="btn-pagination" :disabled="activeCurrentPage === activeTotalPages" @click="activeCurrentPage++">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
-            </section>
-        </div>
+
+        </section>
     </div>
-  </DashboardLayout>
+</div>
+</DashboardLayout>
 </template>
 
 <script setup>
@@ -205,46 +214,47 @@ const companies = ref([])
 
 const flashMsg = ref('')
 const showFlash = (message) => {
-  flashMsg.value = message
+    flashMsg.value = message
 
-  setTimeout(() => {
-    flashMsg.value = ""
-  }, 2000)
+    setTimeout(() => {
+        flashMsg.value = ""
+    }, 2000)
 }
 
 const errorMsg = (message) => {
-  flashMsgError.value = message
+    flashMsgError.value = message
 
-  setTimeout(() => {
-    flashMsgError.value = ""
-  }, 2000)
+    setTimeout(() => {
+        flashMsgError.value = ""
+    }, 2000)
 }
 
 // -- Stats Data --
 const stats = computed(() => ({
-  companies: totalCompaniesCount.value,
-  approvals: pendingCompaniesCount.value,
-  blacklisted: blacklistedCompaniesCount.value
+    companies: totalCompaniesCount.value,
+    approvals: pendingCompaniesCount.value,
+    blacklisted: blacklistedCompaniesCount.value
 }))
+
 const statConfig = {
-  companies: {
-    label: 'Total Companies',
-    icon: 'fas fa-building',
-    bgClass: 'bg-pink-soft',
-    textClass: 'text-pink',
-  },
-  approvals: {
-    label: 'Pending Approvals',
-    icon: 'fas fa-hourglass-half',
-    bgClass: 'bg-emerald-soft',
-    textClass: 'text-emerald',
-  },
-  blacklisted: {
-    label: 'Blacklisted',
-    icon: 'fas fa-ban',
-    bgClass: 'bg-orange-soft',
-    textClass: 'text-orange',
-  }
+    companies: {
+        label: 'Total Companies',
+        icon: 'fas fa-building',
+        bgClass: 'bg-primary-soft border border-primary border-opacity-10',
+        textClass: 'text-primary',
+    },
+    approvals: {
+        label: 'Pending Approvals',
+        icon: 'fas fa-hourglass-half',
+        bgClass: 'bg-warning-soft border border-warning border-opacity-25',
+        textClass: 'text-warning',
+    },
+    blacklisted: {
+        label: 'Blocked Companies',
+        icon: 'fas fa-user-times',
+        bgClass: 'bg-danger-soft border border-danger border-opacity-25',
+        textClass: 'text-danger',
+    }
 }
 
 // -- Fetch companies on mount --

@@ -16,6 +16,8 @@ def login():
 
     if not identifier or not password:
         return jsonify({"error": "Missing credentials"}), 400
+    
+
 
     account = User.query.filter(
         or_(
@@ -23,6 +25,11 @@ def login():
             User.username == identifier
         )
     ).first()
+
+    if account and account.type == "student" and account.isBlacklisted:
+        return jsonify({
+            "error": "Student account is blacklisted. Contact support."
+        }), 403
 
     account_type = None
 

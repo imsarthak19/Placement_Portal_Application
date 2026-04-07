@@ -8,6 +8,9 @@ import LoginView from '@/views/LoginView.vue'
 import AdminDashView from '@/views/admin/AdminDashView.vue'
 import CompaniesView from '@/views/admin/CompaniesView.vue'
 import CompanyDetailView from '@/views/admin/CompanyDetailView.vue'
+import StudentsView from '@/views/admin/StudentsView.vue'
+// import StudentDetailView from '@/views/admin/StudentDetailView.vue'
+import DrivesView from '@/views/admin/DrivesView.vue'
 
 
 
@@ -57,6 +60,24 @@ const routes = [
     path: '/admin/company/:id',
     name: 'CompanyDetails',
     component: CompanyDetailView
+  },
+
+  {
+    path: '/admin/students',
+    name: 'Students',
+    component: StudentsView
+  },
+
+  // {
+  //   path: '/admin/student/:id',
+  //   name: 'StudentDetails',
+  //   component: StudentDetailView
+  // },
+
+  {
+    path: '/admin/drives',
+    name: 'AllDrives',
+    component: () => import('@/views/admin/DrivesView.vue')
   },
 
   {
