@@ -47,18 +47,15 @@
         <!-- Stats Grid -->
         <div class="row g-4 mb-5">
             <div v-for="(stat, key) in statConfig" :key="key" class="col-sm-6 col-xl-4">
-                <div class="card h-100 border-0 shadow-sm rounded-4 p-2">
-                    <div class="card-body d-flex align-items-center gap-3">
-                    <div :class="['stat-icon-wrapper rounded-3 d-flex align-items-center justify-content-center flex-shrink-0', stat.bgClass]">
-                        <i :class="[stat.icon, stat.textClass, 'fs-4']"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <span class="text-muted small fw-bold text-uppercase ls-wide d-block mb-1">{{ stat.label }}</span>
-                        <h3 class="mb-0 fw-extrabold h4">{{ stats[key] || 0 }}</h3>
-                        <span :class="['small fw-semibold mt-1 d-block', stat.changeClass]">{{ stat.change }}</span>
-                    </div>
-                    </div>
-                </div>
+                <StatCard 
+                    :label="stat.label" 
+                    :value="stats[key] || 0" 
+                    :icon="stat.icon" 
+                    :bgClass="stat.bgClass" 
+                    :textClass="stat.textClass" 
+                    :change="stat.change" 
+                    :changeClass="stat.changeClass" 
+                />
             </div>
         </div>
 
@@ -194,6 +191,7 @@ import { ref, onMounted, computed } from 'vue'
 import axios from "axios"
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 import Table from '@/components/ui/Table.vue'
+import StatCard from '@/components/ui/StatCard.vue'
 
 const companyColumns = [
     { key: 'company', label: 'Company', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
