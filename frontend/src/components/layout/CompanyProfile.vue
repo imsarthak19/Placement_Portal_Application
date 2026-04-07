@@ -170,58 +170,43 @@
                 Drives by {{ company?.name || 'the Company' }}
                 </h5>
                 
-                <div class="table-responsive rounded-4 border shadow-sm">
-                    <table class="table table-hover table-borderless align-middle mb-0 custom-table">
-                        <thead class="table-light border-bottom">
-                            <tr>
-                                <th scope="col" class="py-3 px-4 text-secondary fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Title</th>
-                                <th scope="col" class="py-3 px-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Location</th>
-                                <th scope="col" class="py-3 px-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Work Mode</th>
-                                <th scope="col" class="py-3 px-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Payscale</th>
-                                <th scope="col" class="py-3 px-3 text-secondary fw-semibold text-uppercase text-center" style="font-size: 0.85rem; letter-spacing: 0.5px;">Positions</th>
-                                <th scope="col" class="py-3 px-3 text-secondary fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 0.5px;">Created At</th>
-                                <th scope="col" class="py-3 px-4 text-secondary fw-semibold text-uppercase text-center" style="font-size: 0.85rem; letter-spacing: 0.5px;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="drive in drives" :key="drive.id" class="border-bottom">
-                                <td class="py-3 px-4">
-                                    <div class="fw-bold text-dark">{{ drive.title }}</div>
-                                </td>
-                                <td class="py-3 px-3 text-muted">
-                                    <i class="fas fa-map-marker-alt text-secondary me-1 opacity-75"></i> {{ drive.location }}
-                                </td>
-                                <td class="py-3 px-3">
-                                    <span class="badge bg-light text-dark border border-secondary border-opacity-25 px-2 py-1 d-inline-flex align-items-center gap-1">
-                                        <i class="fas" :class="drive.workMode === 'Remote' ? 'fa-home' : (drive.workMode === 'Hybrid' ? 'fa-sync-alt' : 'fa-building')"></i> {{ drive.workMode }}
-                                    </span>
-                                </td>
-                                <td class="py-3 px-3 text-success fw-bold">{{ drive.payScale }}</td>
-                                <td class="py-3 px-3 text-dark fw-medium text-center">{{ drive.positions }}</td>
-                                <td class="py-3 px-3 text-muted"><span class="d-flex align-items-center gap-1"><i class="far fa-calendar-alt opacity-75"></i> {{ formatDate(drive.created_at) }}</span></td>
-                                <td class="py-3 px-4 text-center">
-                                    <span class="badge rounded-pill px-3 py-2 fw-medium shadow-sm"
-                                          :class="{
-                                              'bg-success': drive.status === 'Active',
-                                              'bg-secondary': drive.status === 'Closed',
-                                              'bg-warning text-dark': drive.status === 'Unapproved',
-                                              'bg-danger': drive.status === 'Rejected',
-                                              'bg-info text-dark': drive.status === 'Hired'
-                                          }">
-                                        {{ drive.status }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr v-if="drives.length === 0">
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <div class="fs-1 mb-3 opacity-50">📋</div>
-                                    <h5 class="fw-bold">No drives posted yet</h5>
-                                    <p class="mb-0">Once the company posts hiring drives, they will appear here.</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <Table :columns="tableColumns" :data="drives">
+                    <template #row="{ item: drive }">
+                        <td class="py-3 px-4">
+                            <div class="fw-bold text-dark">{{ drive.title }}</div>
+                        </td>
+                        <td class="py-3 px-3 text-muted">
+                            <i class="fas fa-map-marker-alt text-secondary me-1 opacity-75"></i> {{ drive.location }}
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="badge bg-light text-dark border border-secondary border-opacity-25 px-2 py-1 d-inline-flex align-items-center gap-1">
+                                <i class="fas" :class="drive.workMode === 'Remote' ? 'fa-home' : (drive.workMode === 'Hybrid' ? 'fa-sync-alt' : 'fa-building')"></i> {{ drive.workMode }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3 text-success fw-bold">{{ drive.payScale }}</td>
+                        <td class="py-3 px-3 text-dark fw-medium text-center">{{ drive.positions }}</td>
+                        <td class="py-3 px-3 text-muted"><span class="d-flex align-items-center gap-1"><i class="far fa-calendar-alt opacity-75"></i> {{ formatDate(drive.created_at) }}</span></td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="badge rounded-pill px-3 py-2 fw-medium shadow-sm"
+                                  :class="{
+                                      'bg-success': drive.status === 'Active',
+                                      'bg-secondary': drive.status === 'Closed',
+                                      'bg-warning text-dark': drive.status === 'Unapproved',
+                                      'bg-danger': drive.status === 'Rejected',
+                                      'bg-info text-dark': drive.status === 'Hired'
+                                  }">
+                                {{ drive.status }}
+                            </span>
+                        </td>
+                    </template>
+                    <template #empty>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <div class="fs-1 mb-3 opacity-50">📋</div>
+                            <h5 class="fw-bold">No drives posted yet</h5>
+                            <p class="mb-0">Once the company posts hiring drives, they will appear here.</p>
+                        </td>
+                    </template>
+                </Table>
 
                 </div>
         </div>
@@ -234,6 +219,17 @@
     import { useRoute } from 'vue-router'
     import axios from "axios"
     import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
+    import Table from '@/components/ui/Table.vue'
+
+    const tableColumns = [
+        { key: 'title', label: 'Title', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
+        { key: 'location', label: 'Location' },
+        { key: 'workMode', label: 'Work Mode' },
+        { key: 'payScale', label: 'Payscale' },
+        { key: 'positions', label: 'Positions', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase text-center' },
+        { key: 'createdAt', label: 'Created At' },
+        { key: 'status', label: 'Status', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase text-center' }
+    ]
 
     const route = useRoute()
     const companyId = route.params.id

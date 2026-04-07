@@ -68,42 +68,40 @@
                     <h3>Pending Approvals</h3>
                     <p class="text-muted small mb-0">Companies awaiting admin approval.</p>
                 </div>
-                <div class="table-head">
-                    <span>COMPANY</span>
-                    <span>INDUSTRY</span>
-                    <span>EMAIL</span>
-                    <span>STATUS</span>
-                    <span>ACTION</span>
-                </div>
-                <div class="drive-list">
-                    <div v-if="pendingCompanies.length === 0" class="empty-state">
-                        Approval queue is empty.
-                    </div>
-                    <div v-for="company in paginatedPending" :key="company.id" class="drive-item">
-                        <div class="company-col d-flex align-items-center gap-3">
-                            <div class="drive-logo">
-                                {{ company.icon || '🏢' }}
+                <Table :columns="companyColumns" :data="paginatedPending">
+                    <template #row="{ item: company }">
+                        <td class="py-3 px-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="drive-logo">
+                                    {{ company.icon || '🏢' }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark">{{ company.name }}</h6>
+                                </div>
                             </div>
-                            <div class="drive-details">
-                                <h4>{{ company.name }}</h4>
-                            </div>
-                        </div>
-                        <div class="industry-col">
-                            <span class="text-muted small fw-medium">{{ company.industry || 'Technology' }}</span>
-                        </div>
-                        <div class="email-col">
-                            <span class="text-muted small">{{ company.email }}</span>
-                        </div>
-                        <div class="status-col">
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="text-muted fw-medium">{{ company.industry || 'Technology' }}</span>
+                        </td>
+                        <td class="py-3 px-3 text-muted">
+                            {{ company.email }}
+                        </td>
+                        <td class="py-3 px-3 text-center">
                             <span class="status-badge pending">Approval Pending</span>
-                        </div>
-                        <div class="action-col">
+                        </td>
+                        <td class="py-3 px-4 text-center">
                             <button class="btn-action approve-btn" @click="approveCompany(company.id)">
                                 <i class="fas fa-check-circle"></i> Approve
                             </button>
-                        </div>
-                    </div>
-                </div>
+                        </td>
+                    </template>
+                    <template #empty>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <div class="fs-1 mb-3 opacity-50">📋</div>
+                            <h5 class="fw-bold">Approval queue is empty.</h5>
+                        </td>
+                    </template>
+                </Table>
                 
                 <!-- Page Pending -->
                 <div v-if="pendingTotalPages > 1" class="pagination-controls mt-4">
@@ -125,53 +123,51 @@
                 <div class="card-header">
                     <h3>Active Recruiters</h3>
                 </div>
-                <div class="table-head">
-                    <span>COMPANY</span>
-                    <span>INDUSTRY</span>
-                    <span>EMAIL</span>
-                    <span>STATUS</span>
-                    <span>ACTION</span>
-                </div>
-                <div class="drive-list">
-                    <div v-if="activeCompanies.length === 0" class="empty-state">
-                        There are no active companies. 
-                    </div>
-                    <div v-for="company in paginatedActive" :key="company.id" class="drive-item">
-                        <a :href="`/admin/company/${company.id}`" class="company-col d-flex align-items-center gap-3 text-decoration-none">
-                            <div class="company-col d-flex align-items-center gap-3">
-                                <div class="drive-logo">
-                                    <img v-if="company.icon" :src="company.icon" alt="Logo" class="img-fluid rounded-3">
-                                    <span v-else>🏢</span>
+                <Table :columns="companyColumns" :data="paginatedActive">
+                    <template #row="{ item: company }">
+                        <td class="py-3 px-4">
+                            <a :href="`/admin/company/${company.id}`" class="text-decoration-none">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="drive-logo">
+                                        <img v-if="company.icon" :src="company.icon" alt="Logo" class="img-fluid rounded-3" style="width: 100%; height: 100%; object-fit: contain;">
+                                        <span v-else>🏢</span>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-dark">{{ company.name }}</h6>
+                                    </div>
                                 </div>
-                                <div class="drive-details">
-                                    <h4>{{ company.name }}</h4>
-                                </div>
-                            </div>
-                        </a>
-                        <div class="industry-col">
-                            <span class="text-muted small fw-medium">{{ company.industry }}</span>
-                        </div>
-                        <div class="email-col">
-                            <span class="text-muted small">{{ company.email }}</span>
-                        </div>
-                        <div class="status-col">
+                            </a>
+                        </td>
+                        <td class="py-3 px-3">
+                            <span class="text-muted fw-medium">{{ company.industry }}</span>
+                        </td>
+                        <td class="py-3 px-3 text-muted">
+                            {{ company.email }}
+                        </td>
+                        <td class="py-3 px-3 text-center">
                             <span v-if="!company.blacklisted" class="status-badge approved">
                                 Active
                             </span>
                             <span v-else class="status-badge blacklisted">
                                 Blacklisted
                             </span>
-                        </div>
-                        <div class="action-col">
+                        </td>
+                        <td class="py-3 px-4 text-center">
                             <button v-if="company.blacklisted" class="btn-action approve-btn" @click="whitelistCompany(company.id)">
                                 <i class="fas fa-check-circle"></i> Whitelist
                             </button>
                             <button v-else class="btn-action revoke-btn" @click="revokeCompany(company.id)">
                                 <i class="fas fa-times-circle"></i> Blacklist
                             </button>
-                        </div>
-                    </div>
-                </div>
+                        </td>
+                    </template>
+                    <template #empty>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <div class="fs-1 mb-3 opacity-50">📋</div>
+                            <h5 class="fw-bold">There are no active companies.</h5>
+                        </td>
+                    </template>
+                </Table>
                 
                 <!-- Page Active -->
                 <div v-if="activeTotalPages > 1" class="pagination-controls mt-4">
@@ -197,6 +193,15 @@
 import { ref, onMounted, computed } from 'vue'
 import axios from "axios"
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
+import Table from '@/components/ui/Table.vue'
+
+const companyColumns = [
+    { key: 'company', label: 'Company', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
+    { key: 'industry', label: 'Industry', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
+    { key: 'email', label: 'Email', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
+    { key: 'status', label: 'Status', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase text-center' },
+    { key: 'action', label: 'Action', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase text-center' }
+]
 
 const companies = ref([])
 
@@ -495,47 +500,6 @@ const whitelistCompany = async (companyId) => {
 
 /* Tables */
 
-.table-head {
-    display: grid;
-    grid-template-columns: 2fr 1fr 2fr 1fr 1fr;
-    gap: 16px;
-    padding: 12px 16px;
-    border-bottom: 2px solid #eee;
-    font-weight: 600;
-    color: #555;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-}
-
-.drive-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.drive-item {
-    display: grid;
-    grid-template-columns: 2fr 1fr 2fr 1fr 1fr;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    background: #fafafa;
-    transition: all 0.2s ease;
-}
-
-.drive-item:hover {
-    background: #f0f0f0;
-}
-
-.company-col, .industry-col, .email-col, .status-col, .action-col {
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
 .drive-logo {
     width: 44px;
     height: 44px;
@@ -549,29 +513,7 @@ const whitelistCompany = async (companyId) => {
     color: var(--color-primary);
     font-size: 1.2rem;
     flex-shrink: 0;
-}
-
-.drive-details {
-    flex: 1;
     overflow: hidden;
-}
-
-.drive-details h4 {
-    margin: 0;
-    font-size: 1rem;
-    color: #333;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.drive-details p {
-    margin: 4px 0 0 0;
-    font-size: 0.875rem;
-    color: #777;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .status-badge {

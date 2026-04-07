@@ -123,3 +123,27 @@ def get_company_drives(company_id):
             "created_at": d.created_at.isoformat()
         } for d in drives
     ])
+
+#Fetch All Drives by all companies
+@app.route('/api/admin/all-drives', methods=['GET'])
+@jwt_required()
+def get_all_drives():
+    user = get_jwt_identity()
+
+    if user["type"] != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    drives = Drive.query.all()
+
+    return jsonify([
+        {
+            "id": d.id,
+            "title": d.title,
+            "location": d.location,
+            "workMode": d.workMode,
+            "status": d.status,
+            "payScale": d.payScale,
+            "positions": d.positions,
+            "created_at": d.created_at.isoformat()
+        } for d in drives
+    ])
