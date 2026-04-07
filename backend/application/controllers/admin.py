@@ -96,3 +96,30 @@ def get_company_profile(company_id):
         "blacklisted": company.isBlacklisted,
         "created_at": company.created_at.isoformat()
     })
+
+# Fetch All Drives for a Company
+@app.route('/api/company/all-drives/<int:company_id>', methods=['GET'])
+@jwt_required()
+def get_company_drives(company_id):
+    company = Company.query.get(company_id)
+
+    if not company:
+        return {"message": "Company not found"}, 404
+    
+    if not company.drives:
+        return {"message": "No drives found for this company"}, 404
+
+    drives = company.drives
+
+    return jsonify([
+        {
+            "id": d.id,
+            "title": d.title,
+            "location": d.location,
+            "workMode": d.workMode,
+            "status": d.status,
+            "payScale": d.payScale,
+            "positions": d.positions,
+            "created_at": d.created_at.isoformat()
+        } for d in drives
+    ])

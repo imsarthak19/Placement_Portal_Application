@@ -47,9 +47,12 @@ class Company(db.Model, UserMixin):
 class Drive(db.Model):
     id = db.Column(db.Integer, primary_key=True, index=True)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False, index=True)
+    status = db.Column(db.String(50), default='uapproved', nullable=False)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
     eligibility = db.Column(db.String(150), nullable=True)
+    batchYears = db.Column(db.String(150), nullable=True)
+    branches = db.Column(db.String(150), nullable=True)
     deadline = db.Column(db.DateTime, nullable=True)
     payScale = db.Column(db.String(150), nullable=True)
     location = db.Column(db.String(150), nullable=True)

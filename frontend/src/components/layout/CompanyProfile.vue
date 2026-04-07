@@ -184,7 +184,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="drive in mockDrives" :key="drive.id" class="border-bottom">
+                            <tr v-for="drive in drives" :key="drive.id" class="border-bottom">
                                 <td class="py-3 px-4">
                                     <div class="fw-bold text-dark">{{ drive.title }}</div>
                                 </td>
@@ -193,24 +193,26 @@
                                 </td>
                                 <td class="py-3 px-3">
                                     <span class="badge bg-light text-dark border border-secondary border-opacity-25 px-2 py-1 d-inline-flex align-items-center gap-1">
-                                        <i class="fas" :class="drive.workmode === 'Remote' ? 'fa-home' : (drive.workmode === 'Hybrid' ? 'fa-sync-alt' : 'fa-building')"></i> {{ drive.workmode }}
+                                        <i class="fas" :class="drive.workMode === 'Remote' ? 'fa-home' : (drive.workMode === 'Hybrid' ? 'fa-sync-alt' : 'fa-building')"></i> {{ drive.workMode }}
                                     </span>
                                 </td>
-                                <td class="py-3 px-3 text-success fw-bold">{{ drive.payscale }}</td>
+                                <td class="py-3 px-3 text-success fw-bold">{{ drive.payScale }}</td>
                                 <td class="py-3 px-3 text-dark fw-medium text-center">{{ drive.positions }}</td>
-                                <td class="py-3 px-3 text-muted"><span class="d-flex align-items-center gap-1"><i class="far fa-calendar-alt opacity-75"></i> {{ drive.createdAt }}</span></td>
+                                <td class="py-3 px-3 text-muted"><span class="d-flex align-items-center gap-1"><i class="far fa-calendar-alt opacity-75"></i> {{ formatDate(drive.created_at) }}</span></td>
                                 <td class="py-3 px-4 text-center">
                                     <span class="badge rounded-pill px-3 py-2 fw-medium shadow-sm"
                                           :class="{
                                               'bg-success': drive.status === 'Active',
                                               'bg-secondary': drive.status === 'Closed',
-                                              'bg-warning text-dark': drive.status === 'Unapproved'
+                                              'bg-warning text-dark': drive.status === 'Unapproved',
+                                              'bg-danger': drive.status === 'Rejected',
+                                              'bg-info text-dark': drive.status === 'Hired'
                                           }">
                                         {{ drive.status }}
                                     </span>
                                 </td>
                             </tr>
-                            <tr v-if="mockDrives.length === 0">
+                            <tr v-if="drives.length === 0">
                                 <td colspan="7" class="text-center py-5 text-muted">
                                     <div class="fs-1 mb-3 opacity-50">📋</div>
                                     <h5 class="fw-bold">No drives posted yet</h5>
@@ -230,21 +232,16 @@
 <script setup>
     import { ref, onMounted, computed } from 'vue'
     import { useRoute } from 'vue-router'
-    const route = useRoute()
-    const companyId = route.params.id
-    const company = ref(null)
-
-    // Dummy data for Hiring Drives
-    const mockDrives = ref([
-        { id: 1, title: 'Software Engineer', location: 'Bangalore, India', workmode: 'Hybrid', payscale: '12 LPA', positions: 5, createdAt: '2026-03-15', status: 'Active' },
-        { id: 2, title: 'Frontend Intern', location: 'Remote', workmode: 'Remote', payscale: '8 LPA', positions: 2, createdAt: '2026-02-28', status: 'Closed' },
-        { id: 3, title: 'Data Scientist', location: 'Mumbai, India', workmode: 'On-site', payscale: '15 LPA', positions: 3, createdAt: '2026-04-01', status: 'Unapproved' }
-    ])
-
     import axios from "axios"
     import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 
+    const route = useRoute()
+    const companyId = route.params.id
+    const company = ref(null)
+    const drives = ref([])
     const flashMsg = ref('')
+
+
     const showFlash = (message) => {
     flashMsg.value = message
 
@@ -260,10 +257,16 @@
     }, 2000)
     }
 
-    // -- Fetch company details on mount --
+    // -- Fetch company & Drive details on mount --
     onMounted(async () => {
         console.log("Company ID:", companyId)
 
+        await fetchCompany()
+        await fetchDrives()
+    })
+
+    const fetchCompany = async () => {
+        console.log("Company ID:", companyId)
         const token = localStorage.getItem("token")
 
         try {
@@ -284,15 +287,56 @@
             }
 
             const data = await res.json()
-            console.log("DATA:", data)
+            console.log("COMPANY DATA:", data)
+
             company.value = data
 
         } catch (err) {
             console.error("Error:", err)
             errorMsg.value = 'Server error. Please try again later.'
+        }
     }
-    })
 
+    const fetchDrives = async () => {
+        const token = localStorage.getItem("token")
+
+        try {
+            const res = await fetch(
+            `http://127.0.0.1:5555/api/company/all-drives/${companyId}`,
+            {
+                method: 'GET',
+                headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+                }
+            }
+            )
+
+            if (!res.ok) {
+            console.error("Drives fetch failed:", res.status)
+            return
+            }
+
+            const data = await res.json()
+            console.log("DRIVES:", data)
+
+            drives.value = data
+
+        } catch (err) {
+            console.error("Drives error:", err)
+        }
+    }
+
+    // Formatting Date
+    const formatDate = (isoString) => {
+    const date = new Date(isoString)
+
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = String(date.getFullYear()).slice(-2)
+
+    return `${day}-${month}-${year}`
+}
 
     // Pending Companies Pagination
     const pendingCurrentPage = ref(1)

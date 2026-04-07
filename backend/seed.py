@@ -13,7 +13,6 @@ def seed_companies():
             "industry": "Technology",
             "scale": "Large",
             "headOffice": "California, USA",
-            "locations": "Bangalore, Hyderabad",
             "website": "https://google.com"
         },
         {
@@ -24,7 +23,6 @@ def seed_companies():
             "industry": "Technology",
             "scale": "Large",
             "headOffice": "Redmond, USA",
-            "locations": "Hyderabad, Pune",
             "website": "https://microsoft.com"
         },
         {
@@ -35,7 +33,6 @@ def seed_companies():
             "industry": "Technology",
             "scale": "Large",
             "headOffice": "Seattle, USA",
-            "locations": "Bangalore, Chennai",
             "website": "https://amazon.com"
         }
     ]
@@ -53,7 +50,6 @@ def seed_companies():
             industry=data["industry"],
             scale=data["scale"],
             headOffice=data["headOffice"],
-            locations=data["locations"],
             website=data["website"]
         )
 
