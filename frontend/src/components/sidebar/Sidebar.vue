@@ -40,7 +40,7 @@ const role = computed(() => props.user?.type)
 
 <style scoped>
 .sidebar {
-  width: 260px;
+  width: 230px;
   background-color: var(--color-primary, #781f19);
   z-index: 1050;
   transition: transform 0.3s ease;

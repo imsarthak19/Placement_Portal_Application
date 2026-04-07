@@ -1,6 +1,14 @@
 <template>
-    This is the Admin's Particular Company page
+    <CompanyProfile :companyId="companyId" />
 </template>
+
+<script setup>
+import { useRoute } from 'vue-router';
+const route = useRoute();
+const companyId = route.params.id;
+
+import CompanyProfile from '@/components/layout/CompanyProfile.vue';
+</script>
 
 <style scoped>
 

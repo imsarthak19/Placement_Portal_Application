@@ -34,8 +34,8 @@ onMounted(() => {
 
 <style scoped>
 .dashboard-main {
-  /* Offset for fixed sidebar width (260px) */
-  margin-left: 260px;
+  /* Offset for fixed sidebar width (230px) */
+  margin-left: 230px;
   transition: all 0.3s ease;
 }
 

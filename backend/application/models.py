@@ -36,7 +36,6 @@ class Company(db.Model, UserMixin):
     industry = db.Column(db.String(150), nullable=True)
     scale = db.Column(db.String(150), nullable=True)
     headOffice = db.Column(db.String(150), nullable=True)
-    locations = db.Column(db.String(150), nullable=True)
     website = db.Column(db.String(150), nullable=True)
     logo = db.Column(db.String(150), nullable=True)
     pocName = db.Column(db.String(150), nullable=True)

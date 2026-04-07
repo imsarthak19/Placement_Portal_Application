@@ -71,3 +71,28 @@ def whitelist_company(company_id):
     db.session.commit()
 
     return {"message": "Company whitelisted successfully"}
+
+
+@app.route('/api/company-profile/<int:company_id>', methods=['GET'])
+@jwt_required()
+def get_company_profile(company_id):
+    company = Company.query.get(company_id)
+
+    if not company:
+        return {"message": "Company not found"}, 404
+
+    return jsonify({
+        "name": company.name,
+        "email": company.email,
+        "approved": company.approved,
+        'description': company.description,
+        "scale": company.scale,
+        "headOffice": company.headOffice,
+        "website": company.website,
+        'pocName': company.pocName,
+        'pocEmail': company.pocEmail,
+        "icon": company.logo,
+        "industry": company.industry,
+        "blacklisted": company.isBlacklisted,
+        "created_at": company.created_at.isoformat()
+    })

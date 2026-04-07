@@ -54,7 +54,7 @@ const routes = [
   },
 
   {
-    path: '/admin/companies/:id',
+    path: '/admin/company/:id',
     name: 'CompanyDetails',
     component: CompanyDetailView
   },

@@ -137,23 +137,26 @@
                         There are no active companies. 
                     </div>
                     <div v-for="company in paginatedActive" :key="company.id" class="drive-item">
-                        <div class="company-col d-flex align-items-center gap-3">
-                            <div class="drive-logo">
-                                {{ company.icon || '🏢' }}
+                        <a :href="`/admin/company/${company.id}`" class="company-col d-flex align-items-center gap-3 text-decoration-none">
+                            <div class="company-col d-flex align-items-center gap-3">
+                                <div class="drive-logo">
+                                    <img v-if="company.icon" :src="company.icon" alt="Logo" class="img-fluid rounded-3">
+                                    <span v-else>🏢</span>
+                                </div>
+                                <div class="drive-details">
+                                    <h4>{{ company.name }}</h4>
+                                </div>
                             </div>
-                            <div class="drive-details">
-                                <h4>{{ company.name }}</h4>
-                            </div>
-                        </div>
+                        </a>
                         <div class="industry-col">
-                            <span class="text-muted small fw-medium">{{ company.industry || 'Technology' }}</span>
+                            <span class="text-muted small fw-medium">{{ company.industry }}</span>
                         </div>
                         <div class="email-col">
                             <span class="text-muted small">{{ company.email }}</span>
                         </div>
                         <div class="status-col">
                             <span v-if="!company.blacklisted" class="status-badge approved">
-                                Approved
+                                Active
                             </span>
                             <span v-else class="status-badge blacklisted">
                                 Blacklisted
