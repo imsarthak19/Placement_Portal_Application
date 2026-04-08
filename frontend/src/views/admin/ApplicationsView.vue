@@ -7,9 +7,9 @@
         <div class="header-content w-100 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
             <div>
                 <div class="header-tag">MANAGEMENT CONSOLE</div>
-                <h1>Student Management</h1>
+                <h1>Application Management</h1>
             </div>
-            <Search v-model="searchQuery" placeholder="Search students by name, email, roll..." />
+            <Search v-model="searchQuery" placeholder="Search applications by student, company, drive or status..." />
         </div>
     </header>
   
@@ -46,57 +46,50 @@
   
     <!-- Main Content -->
     <div class="dashboard-content-grid">
-        <!-- All Students Table -->
+        <!-- All Applications Table -->
         <section class="upcoming-drives card my-4">
             <div class="card-header border-0 pb-0">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4 w-100">
                     <div>
-                        <h3 class="mb-1">All Registered Students</h3>
-                        <p class="text-muted small mb-0">Complete list of registered students.</p>
+                        <h3 class="mb-1">Recent Applications</h3>
+                        <p class="text-muted small mb-0">Total list of all applications submitted.</p>
                     </div>
-
                 </div>
             </div>
                   
-            <Table :columns="studentColumns" :data="paginatedAll">
-                <template #row="{ item: student }">
+            <Table :columns="applicationColumns" :data="paginatedAll">
+                <template #row="{ item: app }">
 
                     <td class="py-3 px-4">
-                        <router-link :to="`/admin/student/${student.id}`" class="text-decoration-none">
-                            <div class="fw-bold text-dark hover-primary" style="transition: color 0.2s ease;">{{ student.name }}</div>
-                        </router-link>
+                        <div class="fw-bold text-dark">{{ app.student_name }}</div>
                     </td>
 
                     <td class="py-3 px-3">
-                        <div class="fw-medium text-dark"><i class="fas fa-envelope text-primary me-1 opacity-75"></i> {{ student.email }}</div>
+                        <div class="fw-medium text-dark"><i class="fas fa-building text-primary me-1 opacity-75"></i> {{ app.company_name }}</div>
                     </td>
 
                     <td class="py-3 px-3 text-muted">
-                        <i class="fas text-secondary me-1 opacity-75"></i> {{ student.branch }}
+                        <i class="fas fa-briefcase text-secondary me-1 opacity-75"></i> {{ app.drive_title }}
                     </td>
 
                     <td class="py-3 px-4 text-center">
                         <span 
-                            class="badge px-3 py-2 fw-medium shadow-sm"
+                            class="badge px-3 py-2 fw-medium shadow-sm text-capitalize"
                             :class="{
-                                'bg-success': !student.blacklisted,
-                                'bg-danger': student.blacklisted
+                                'bg-success': app.status === 'offered' || app.status === 'placed',
+                                'bg-primary': app.status === 'applied',
+                                'bg-warning text-dark': app.status === 'interviewing' || app.status === 'shortlisted',
+                                'bg-danger': app.status === 'rejected'
                             }"
                             >
-                            {{ !student.blacklisted ? 'Active' : 'blacklisted' }}
+                            {{ app.status }}
                         </span>
                     </td>
 
                     <td class="py-3 px-4 text-center">
-                        <router-link :to="`/admin/student/${student.id}`" class="btn-action view-btn text-decoration-none me-2">
-                            <i class="fas fa-eye"></i> View
-                        </router-link>
-                        <button v-if="!student.blacklisted" class="btn-action revoke-btn" @click="revokeStudent(student.id)">
-                            <i class="fas fa-times-circle"></i> Blacklist
-                        </button>
-                        <button v-else-if="student.blacklisted" class="btn-action approve-btn" @click="whitelistStudent(student.id)">
-                            <i class="fas fa-check-circle"></i> Whitelist
-                        </button>
+                        <div class="text-muted small">
+                            <i class="far fa-calendar-alt me-1"></i> {{ new Date(app.applied_at).toLocaleDateString() }}
+                        </div>
                     </td>
 
                 </template>
@@ -105,7 +98,7 @@
                 <template #empty>
                     <td colspan="5" class="text-center py-5 text-muted">
                         <div class="fs-1 mb-3 opacity-50">📋</div>
-                        <h5 class="fw-bold">No students found matching your criteria.</h5>
+                        <h5 class="fw-bold">No applications found matching your criteria.</h5>
                     </td>
                 </template>
             </Table>
@@ -142,7 +135,7 @@ import Table from '@/components/ui/Table.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import Search from '@/components/ui/Search.vue'
 
-const students = ref([])
+const applications = ref([])
 const searchQuery = ref('')
 const flashMsg = ref('')
 const flashMsgError = ref('')
@@ -162,48 +155,55 @@ const errorMsg = (message) => {
 }
 
 // Table Columns
-const studentColumns = [
-    { key: 'name', label: 'Name', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
-    { key: 'email', label: 'Email', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
-    { key: 'branch', label: 'Branch', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
+const applicationColumns = [
+    { key: 'student', label: 'Student', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
+    { key: 'company', label: 'Company', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
+    { key: 'drive', label: 'Drive', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
     { key: 'status', label: 'Status', class: 'py-3 px-4 text-center text-secondary fw-semibold text-uppercase' },
-    { key: 'actions', label: 'Actions', class: 'py-3 px-4 text-center text-secondary fw-semibold text-uppercase' }
+    { key: 'date', label: 'Applied On', class: 'py-3 px-4 text-center text-secondary fw-semibold text-uppercase' }
 ]
 
 // Stats Data Computation
 const stats = computed(() => ({
-    total: students.value.length,
-    blacklisted: students.value.filter(s => s.blacklisted).length,
+    total: applications.value.length,
+    placed: applications.value.filter(a => a.status === 'placed' || a.status === 'offered').length,
+    pending: applications.value.filter(a => a.status === 'applied' || a.status === 'interviewing' || a.status === 'shortlisted').length,
 }))
 
 const statConfig = {
     total: {
-        label: 'Total Students',
-        icon: 'fas fa-users',
+        label: 'Total Applications',
+        icon: 'fas fa-file-alt',
         bgClass: 'bg-primary-soft border border-primary border-opacity-10',
         textClass: 'text-primary',
     },
-    blacklisted: {
-        label: 'Blocked Students',
-        icon: 'fas fa-user-times',
-        bgClass: 'bg-danger-soft border border-danger border-opacity-25',
-        textClass: 'text-danger',
+    placed: {
+        label: 'Offers/Placements',
+        icon: 'fas fa-award',
+        bgClass: 'bg-success-soft border border-success border-opacity-25',
+        textClass: 'text-success',
+    },
+    pending: {
+        label: 'Active Pipeline',
+        icon: 'fas fa-spinner',
+        bgClass: 'bg-warning-soft border border-warning border-opacity-25',
+        textClass: 'text-warning',
     }
 }
 
-// -- Fetch students on mount --
-const fetchStudents = async (search = '') => {
+// -- Fetch applications on mount --
+const fetchApplications = async (search = '') => {
     const token = localStorage.getItem("token")
 
     try {
-        const res = await axios.get('http://127.0.0.1:5555/api/admin/all-students', {
+        const res = await axios.get('http://127.0.0.1:5555/api/admin/all-applications', {
             params: { search },
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         })
-        students.value = res.data
-        console.log("STUDENTS", res.data)
+        applications.value = res.data
+        console.log("APPLICATIONS", res.data)
     } 
     catch (err) {
         console.error("Fetch error:", err)
@@ -217,103 +217,23 @@ watch(searchQuery, (newVal) => {
     if (searchTimeout) clearTimeout(searchTimeout)
     searchTimeout = setTimeout(() => {
         allCurrentPage.value = 1 // reset to first page on search
-        fetchStudents(newVal)
+        fetchApplications(newVal)
     }, 500)
 })
 
 onMounted(() => {
-    fetchStudents()
+    fetchApplications()
 })
 
-const revokeStudent = async (studentId) => {
-    flashMsg.value = ''
-    try {
-        const token = localStorage.getItem("token")
-
-            if (!token) {
-                console.error("No token found")
-                errorMsg('Authentication error. Please log in again.')
-                return
-                }
-
-        await axios.put(
-            `http://127.0.0.1:5555/api/admin/blacklist_student/${studentId}`,
-            {},
-            {
-                headers: {
-                Authorization: `Bearer ${token}`
-                }
-            }
-        )
-
-        console.log("Student Blacklisted!")
-        showFlash('Student blacklisted successfully.')
-
-        // update UI
-        students.value = students.value.map(s => {
-        if (s.id === studentId) {
-            return { ...s, blacklisted: true }
-        }
-        return s
-        })
-
-    } catch (error) {
-    console.error("Error:", error.response?.data || error.message)
-    errorMsg('Failed to blacklist student. Please try again.')
-  }
-}
-
-const whitelistStudent = async (studentId) => {
-    flashMsg.value = ''
-    try {
-        const token = localStorage.getItem("token")
-
-            if (!token) {
-                console.error("No token found")
-                errorMsg('Authentication error. Please log in again.')
-                return
-                }
-
-        await axios.put(
-            `http://127.0.0.1:5555/api/admin/whitelist_student/${studentId}`,
-            {},
-            {
-                headers: {
-                Authorization: `Bearer ${token}`
-                }
-            }
-        )
-
-        console.log("Student Whitelisted!")
-        showFlash('Student whitelisted successfully.')
-
-        // update UI
-        students.value = students.value.map(s => {
-        if (s.id === studentId) {
-            return { ...s, blacklisted: false }
-        }
-        return s
-        })
-
-    } catch (error) {
-    console.error("Error:", error.response?.data || error.message)
-    errorMsg('Failed to whitelist company. Please try again.')
-  }
-}
-
-// Stats computation
-const totalStudentsCount = computed(() => students.value.length)
-const blacklistedStudentsCount = computed(() => students.value.filter(s => s.blacklisted).length)
-
 // Pagination logic
-const itemsPerPage = 5
+const itemsPerPage = 8
 
-// All Drives Pagination
+// All Applications Pagination
 const allCurrentPage = ref(1)
-const allTotalPages = computed(() => Math.ceil(students.value.length / itemsPerPage) || 1)
+const allTotalPages = computed(() => Math.ceil(applications.value.length / itemsPerPage) || 1)
 const paginatedAll = computed(() => {
     const start = (allCurrentPage.value - 1) * itemsPerPage
-    return students.value.slice(start, start + itemsPerPage)
+    return applications.value.slice(start, start + itemsPerPage)
 })
 </script>
 
@@ -346,22 +266,6 @@ const paginatedAll = computed(() => {
     margin: 0 0 8px 0;
 }
 
-.btn-primary {
-    background-color: var(--color-primary);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-primary:hover, .approve-btn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
 .card {
     background: white;
     border-radius: 16px;
@@ -371,9 +275,6 @@ const paginatedAll = computed(() => {
 }
 
 .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
 }
 
@@ -381,86 +282,6 @@ const paginatedAll = computed(() => {
     font-size: 1.25rem;
     margin: 0;
     color: var(--color-text);
-}
-
-/* Buttons */
-.btn-action {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    height: 36px;
-    padding: 0 16px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.view-btn {
-    background-color: #3b82f6;
-    color: #ffffff;
-    border-color: #3b82f6;
-}
-
-.view-btn:hover {
-    background-color: #2563eb;
-    border-color: #2563eb;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4), 0 2px 4px -1px rgba(59, 130, 246, 0.2);
-}
-
-.hover-primary:hover {
-    color: var(--color-primary) !important;
-}
-
-.approve-btn {
-    background-color: #10b981;
-    color: #ffffff;
-    border-color: #10b981;
-}
-
-.approve-btn:hover {
-    background-color: #059669;
-    border-color: #059669;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4), 0 2px 4px -1px rgba(16, 185, 129, 0.2);
-}
-
-.revoke-btn {
-    background-color: #ef4444;
-    color: #ffffff;
-    border-color: #ef4444;
-}
-
-.revoke-btn:hover {
-    background-color: #dc2626;
-    border-color: #dc2626;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4), 0 2px 4px -1px rgba(239, 68, 68, 0.2);
-}
-
-.btn-action:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-.status-badge {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-}
-
-.pending {
-    background-color: #f8d7da;
-    color: #721c24;
 }
 
 /* Pagination Styles */

@@ -97,10 +97,4 @@ defineEmits(['update:modelValue'])
   color: #64748b;
   background: #f1f5f9;
 }
-
-/* Dark mode anticipation */
-@media (prefers-color-scheme: dark) {
-  /* .search-wrapper { background: #1e293b; border-color: #334155; } */
-  /* .search-input { color: #f1f5f9; } */
-}
 </style>

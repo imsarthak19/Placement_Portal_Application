@@ -5,7 +5,6 @@ from application.models import User, Company, Drive, Student, Application
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
-from flask_jwt_extended import jwt_required, get_jwt_identity
 
 @app.route('/api/admin/companies', methods=["GET"])
 @jwt_required()
@@ -220,7 +219,7 @@ def get_all_students():
     query = User.query.filter_by(type="student")
 
     if search_query:
-        query = query.join(Student).filter(
+        query = query.outerjoin(Student).filter(
             or_(
                 User.name.ilike(f'%{search_query}%'),
                 User.email.ilike(f'%{search_query}%'),
@@ -328,6 +327,41 @@ def get_student_applications(student_id):
 
     return jsonify(apps_data)
 
+# Fetch All Applications for Admin
+@app.route('/api/admin/all-applications', methods=['GET'])
+@jwt_required()
+def get_all_applications():
+    user = get_jwt_identity()
+
+    if user["type"] != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    search_query = request.args.get('search', '')
+    query = Application.query
+
+    if search_query:
+        query = query.join(Student).join(User, Student.user_id == User.id).join(Drive).join(Company).filter(
+            or_(
+                User.name.ilike(f'%{search_query}%'),
+                Company.name.ilike(f'%{search_query}%'),
+                Drive.title.ilike(f'%{search_query}%'),
+                Application.status.ilike(f'%{search_query}%')
+            )
+        )
+
+    applications = query.all()
+
+    return jsonify([
+        {
+            "id": a.id,
+            "student_name": a.student.user.name if a.student and a.student.user else "Unknown",
+            "company_name": a.drive.company.name if a.drive and a.drive.company else "Unknown",
+            "drive_title": a.drive.title if a.drive else "Unknown",
+            "status": a.status,
+            "applied_at": a.created_at.isoformat() if a.created_at else None
+        } for a in applications
+    ])
+
 # Get Single Drive Details
 @app.route('/api/admin/drive-details/<int:drive_id>', methods=['GET'])
 @jwt_required()
@@ -387,3 +421,24 @@ def get_drive_applications(drive_id):
         })
 
     return jsonify(apps_data)
+
+
+# Fetch Stats for Admin Dashboard
+@app.route('/api/admin/stats', methods=['GET'])
+@jwt_required()
+def get_admin_stats():
+    user = get_jwt_identity()
+    if user["type"] != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    students_count = User.query.filter_by(type="student").count()
+    companies_count = Company.query.count()
+    active_drives_count = Drive.query.filter_by(status='Active').count()
+    applications_count = Application.query.count()
+
+    return jsonify({
+        "students": students_count,
+        "companies": companies_count,
+        "drives": active_drives_count,
+        "applications": applications_count
+    })

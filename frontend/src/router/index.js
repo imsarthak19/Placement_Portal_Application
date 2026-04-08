@@ -12,6 +12,8 @@ import StudentsView from '@/views/admin/StudentsView.vue'
 import StudentDetailView from '@/views/admin/StudentDetailView.vue'
 import DrivesView from '@/views/admin/DrivesView.vue'
 import DriveDetailView from '@/views/admin/DriveDetailView.vue'
+import ApplicationsView from '@/views/admin/ApplicationsView.vue'
+import ReportsView from '@/views/admin/ReportsView.vue'
 
 
 import CompanyDashView from '@/views/CompanyDashView.vue'
@@ -82,6 +84,18 @@ const routes = [
     path: '/admin/drives',
     name: 'AllDrives',
     component: DrivesView
+  },
+
+  {
+    path: '/admin/applications',
+    name: 'AllApplications',
+    component: ApplicationsView
+  },
+
+  {
+    path: '/admin/reports',
+    name: 'Reports',
+    component: ReportsView
   },
 
   {
