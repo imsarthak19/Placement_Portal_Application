@@ -173,7 +173,9 @@
                 <Table :columns="tableColumns" :data="drives">
                     <template #row="{ item: drive }">
                         <td class="py-3 px-4">
-                            <div class="fw-bold text-dark">{{ drive.title }}</div>
+                            <router-link :to="`/admin/drive/${drive.id}`" class="text-decoration-none">
+                                <div class="fw-bold text-dark hover-primary" style="transition: color 0.2s ease;">{{ drive.title }}</div>
+                            </router-link>
                         </td>
                         <td class="py-3 px-3 text-muted">
                             <i class="fas fa-map-marker-alt text-secondary me-1 opacity-75"></i> {{ drive.location }}
@@ -187,7 +189,7 @@
                         <td class="py-3 px-3 text-dark fw-medium text-center">{{ drive.positions }}</td>
                         <td class="py-3 px-3 text-muted"><span class="d-flex align-items-center gap-1"><i class="far fa-calendar-alt opacity-75"></i> {{ formatDate(drive.created_at) }}</span></td>
                         <td class="py-3 px-4 text-center">
-                            <span class="badge rounded-pill px-3 py-2 fw-medium shadow-sm"
+                            <span class="badge px-3 py-2 fw-medium shadow-sm"
                                   :class="{
                                       'bg-success': drive.status === 'Active',
                                       'bg-secondary': drive.status === 'Closed',
@@ -197,6 +199,11 @@
                                   }">
                                 {{ drive.status }}
                             </span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <router-link :to="`/admin/drive/${drive.id}`" class="btn btn-sm btn-primary border-0 shadow-sm px-3 py-2 rounded-3 view-btn">
+                                <i class="fas fa-eye me-1"></i> View
+                            </router-link>
                         </td>
                     </template>
                     <template #empty>
@@ -211,7 +218,7 @@
                 </div>
         </div>
     </div>
-  </DashboardLayout>
+</DashboardLayout>
 </template>
 
 <script setup>
@@ -224,11 +231,12 @@
     const tableColumns = [
         { key: 'title', label: 'Title', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
         { key: 'location', label: 'Location' },
-        { key: 'workMode', label: 'Work Mode' },
+        { key: 'workMode', label: 'Mode' },
         { key: 'payScale', label: 'Payscale' },
         { key: 'positions', label: 'Positions', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase text-center' },
-        { key: 'createdAt', label: 'Created At' },
-        { key: 'status', label: 'Status', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase text-center' }
+        { key: 'createdAt', label: 'Created' },
+        { key: 'status', label: 'Status', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase text-center' },
+        { key: 'action', label: 'Action', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase text-center' }
     ]
 
     const route = useRoute()
@@ -525,5 +533,20 @@
 .fade-leave-to {
     opacity: 0;
     transform: translateY(-10px) scale(0.95);
+}
+
+.view-btn {
+    background-color: #3b82f6;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.view-btn:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+}
+
+.hover-primary:hover {
+    color: var(--color-primary) !important;
 }
 </style>

@@ -6,7 +6,7 @@
         <div class="col-lg-6 text-center animate-fade-up">
 
           <div class="mb-5">
-            <h1 class="display-1 fw-extrabold main-logo mb-3">
+            <h1 class="display-1 fw-extrabold main-logo mb-5">
               <span class="text-accent">Campus</span><span class="text-white">Bridge</span>
             </h1>
             <p class="lead text-white-50 fs-4 mb-0 ls-wide fw-medium">
@@ -14,24 +14,15 @@
             </p>
           </div>
 
-          <div class="d-flex flex-column flex-sm-row gap-4 justify-content-center px-4">
-            <router-link to="/signup" class="btn btn-brand-primary btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg transition-transform">
+          <div class="gap-4">
+            <router-link to="/signup" class="btn btn-brand-primary btn-lg px-4 fw-bold shadow-lg transition-transform mx-2">
               <i class="fas fa-rocket me-2"></i>CREATE ACCOUNT
             </router-link>
-            <router-link to="/login" class="btn btn-brand-outline btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg transition-transform">
+            <router-link to="/login" class="btn btn-brand-outline btn-lg px-5 fw-bold shadow-lg transition-transform">
               <i class="fas fa-sign-in-alt me-2"></i>LOG IN
             </router-link>
           </div>
 
-          <div class="mt-5 pt-5 opacity-75">
-            <div class="d-flex align-items-center justify-content-center gap-4 text-white-50 small fw-bold text-uppercase ls-wider">
-              <span>50+ Corporations</span>
-              <span class="dot-separator">•</span>
-              <span>Premium Career Management</span>
-              <span class="dot-separator">•</span>
-              <span>Al-Driven Matching</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -129,11 +120,6 @@
 
 .transition-transform {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dot-separator {
-  color: var(--color-secondary, #d6a650);
-  font-size: 1.2rem;
 }
 
 .brand-footer {

@@ -34,7 +34,7 @@ def seed_drives():
 
             eligibility="CGPA > 7.0",
 
-            batchYears=random.choice([
+            batch=random.choice([
                 "2023,2024",
                 "2024",
                 "2022,2023,2024"

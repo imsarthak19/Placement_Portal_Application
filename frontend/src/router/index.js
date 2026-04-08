@@ -9,11 +9,9 @@ import AdminDashView from '@/views/admin/AdminDashView.vue'
 import CompaniesView from '@/views/admin/CompaniesView.vue'
 import CompanyDetailView from '@/views/admin/CompanyDetailView.vue'
 import StudentsView from '@/views/admin/StudentsView.vue'
-// import StudentDetailView from '@/views/admin/StudentDetailView.vue'
+import StudentDetailView from '@/views/admin/StudentDetailView.vue'
 import DrivesView from '@/views/admin/DrivesView.vue'
-
-
-
+import DriveDetailView from '@/views/admin/DriveDetailView.vue'
 
 
 import CompanyDashView from '@/views/CompanyDashView.vue'
@@ -68,16 +66,22 @@ const routes = [
     component: StudentsView
   },
 
-  // {
-  //   path: '/admin/student/:id',
-  //   name: 'StudentDetails',
-  //   component: StudentDetailView
-  // },
+  {
+    path: '/admin/student/:id',
+    name: 'StudentDetails',
+    component: StudentDetailView
+  },
+
+  {
+    path: '/admin/drive/:id',
+    name: 'DriveDetails',
+    component: DriveDetailView
+  },
 
   {
     path: '/admin/drives',
     name: 'AllDrives',
-    component: () => import('@/views/admin/DrivesView.vue')
+    component: DrivesView
   },
 
   {

@@ -3,12 +3,12 @@
 <div class="admin-dashboard">
     <!-- Page header -->
     <header class="dashboard-header">
-        <div class="header-content">
-            <div class="headder-tag">MANAGEMENT CONSOLE</div>
-            <h1>Company Management</h1>
-        </div>
-        <div class="header-actions">
-            <button class="btn-primary"><i class="fas fa-download"></i>Export List</button>
+        <div class="header-content w-100 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+            <div>
+                <div class="headder-tag">MANAGEMENT CONSOLE</div>
+                <h1>Company Management</h1>
+            </div>
+            <Search v-model="searchQuery" placeholder="Search companies by name, email, industry..." />
         </div>
     </header>
 
@@ -62,14 +62,16 @@
 
             <Table :columns="companyColumns" :data="paginatedPending">
                 <template #row="{ item: company }">
-
+                
                     <td class="py-3 px-4">
+                        <router-link :to="`/admin/company/${company.id}`" class="text-decoration-none">
                         <div class="d-flex align-items-center gap-3">
                             <div class="drive-logo">{{ company.icon || '🏢' }}</div>
                             <div>
                                 <h6 class="mb-0 fw-bold text-dark">{{ company.name }}</h6>
                             </div>
                         </div>
+                    </router-link>
                     </td>
                         
                     <td class="py-3 px-3">
@@ -82,7 +84,7 @@
                     </td>
 
                     <td class="py-3 px-3 text-center">
-                        <span class="status-badge pending">Approval Pending</span>
+                        <span class="status-badge pending rounded-pill">Approval Pending</span>
                     </td>
                         
                     <td class="py-3 px-4 text-center">
@@ -127,18 +129,18 @@
             <Table :columns="companyColumns" :data="paginatedActive">
                 <template #row="{ item: company }">
 
-                <td class="py-3 px-4">
-                    <a :href="`/admin/company/${company.id}`" class="text-decoration-none">
+                    <td class="py-3 px-4">
+                    <router-link :to="`/admin/company/${company.id}`" class="text-decoration-none">
                         <div class="d-flex align-items-center gap-3">
                             <div class="drive-logo">
                                 <img v-if="company.icon" :src="company.icon" alt="Logo" class="img-fluid rounded-3" style="width: 100%; height: 100%; object-fit: contain;">
                                 <span v-else>🏢</span>
                             </div>
                             <div>
-                                <h6 class="mb-0 fw-bold text-dark">{{ company.name }}</h6>
+                                <h6 class="mb-0 fw-bold text-dark hover-primary" style="transition: color 0.2s ease;">{{ company.name }}</h6>
                             </div>
                         </div>
-                    </a>
+                    </router-link>
                     </td>
 
                     <td class="py-3 px-3">
@@ -148,15 +150,18 @@
                     <td class="py-3 px-3 text-muted">{{ company.email }}</td>
 
                     <td class="py-3 px-3 text-center">
-                        <span v-if="!company.blacklisted" class="status-badge approved">
+                        <span v-if="!company.blacklisted" class="status-badge rounded-pill approved">
                             Active
                         </span>
-                        <span v-else class="status-badge blacklisted">
+                        <span v-else class="status-badge rounded-pill blacklisted">
                             Blacklisted
                         </span>
                     </td>
 
                     <td class="py-3 px-4 text-center">
+                        <router-link :to="`/admin/company/${company.id}`" class="btn-action view-btn text-decoration-none me-2">
+                            <i class="fas fa-eye"></i> View
+                        </router-link>
                         <button v-if="company.blacklisted" class="btn-action approve-btn" @click="whitelistCompany(company.id)">
                             <i class="fas fa-check-circle"></i> Whitelist
                         </button>
@@ -201,6 +206,7 @@ import axios from "axios"
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 import Table from '@/components/ui/Table.vue'
 import StatCard from '@/components/ui/StatCard.vue'
+import Search from '@/components/ui/Search.vue'
 
 const companyColumns = [
     { key: 'company', label: 'Company', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
@@ -211,6 +217,7 @@ const companyColumns = [
 ]
 
 const companies = ref([])
+const searchQuery = ref('')
 
 const flashMsg = ref('')
 const showFlash = (message) => {
@@ -257,12 +264,15 @@ const statConfig = {
     }
 }
 
-// -- Fetch companies on mount --
-onMounted(async () => {
+// -- Fetch companies --
+const fetchCompanies = async (search = '') => {
     const token = localStorage.getItem("token")
 
     try {
-        const res = await fetch('http://127.0.0.1:5555/api/admin/companies', {
+        const url = new URL('http://127.0.0.1:5555/api/admin/companies')
+        if (search) url.searchParams.append('search', search)
+
+        const res = await fetch(url.toString(), {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -276,6 +286,23 @@ onMounted(async () => {
     catch (err) {
         errorMsg.value = 'Server error. Please try again later.'
     }
+}
+
+// Debounced search
+let searchTimeout = null
+import { watch } from 'vue'
+import router from '@/router'
+watch(searchQuery, (newVal) => {
+    if (searchTimeout) clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(() => {
+        pendingCurrentPage.value = 1
+        activeCurrentPage.value = 1
+        fetchCompanies(newVal)
+    }, 500)
+})
+
+onMounted(() => {
+    fetchCompanies()
 })
 
 // Stats computation
@@ -584,6 +611,23 @@ const whitelistCompany = async (companyId) => {
 .btn-action:active {
     transform: translateY(0);
     box-shadow: none;
+}
+
+.view-btn {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+.view-btn:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4), 0 2px 4px -1px rgba(59, 130, 246, 0.2);
+}
+
+.hover-primary:hover {
+    color: var(--color-primary) !important;
 }
 
 .approved {

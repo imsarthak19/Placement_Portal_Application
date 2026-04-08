@@ -3,13 +3,13 @@
 <div class="admin-dashboard">
 
     <!-- Headings and stuff -->
-    <header class="dashboard-header">
-        <div class="header-content">
-            <div class="header-tag">    MANAGEMENT CONSOLE  </div>
-            <h1>Student Management</h1>
-        </div>
-        <div class="header-actions">
-            <button class="btn-primary"><i class="fas fa-download"></i>Export List</button>
+     <header class="dashboard-header">
+        <div class="header-content w-100 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+            <div>
+                <div class="header-tag">MANAGEMENT CONSOLE</div>
+                <h1>Student Management</h1>
+            </div>
+            <Search v-model="searchQuery" placeholder="Search students by name, email, roll..." />
         </div>
     </header>
   
@@ -48,16 +48,23 @@
     <div class="dashboard-content-grid">
         <!-- All Students Table -->
         <section class="upcoming-drives card my-4">
-            <div class="card-header">
-                <h3>All Registered Students</h3>
-                <p class="text-muted small mb-0">Complete list of registered students.</p>
+            <div class="card-header border-0 pb-0">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4 w-100">
+                    <div>
+                        <h3 class="mb-1">All Registered Students</h3>
+                        <p class="text-muted small mb-0">Complete list of registered students.</p>
+                    </div>
+
+                </div>
             </div>
                   
             <Table :columns="companyColumns" :data="students">
                 <template #row="{ item: student }">
 
                     <td class="py-3 px-4">
-                        <div class="fw-bold text-dark">{{ student.name }}</div>
+                        <router-link :to="`/admin/student/${student.id}`" class="text-decoration-none">
+                            <div class="fw-bold text-dark hover-primary" style="transition: color 0.2s ease;">{{ student.name }}</div>
+                        </router-link>
                     </td>
 
                     <td class="py-3 px-3">
@@ -81,13 +88,15 @@
                     </td>
 
                     <td class="py-3 px-4 text-center">
+                        <router-link :to="`/admin/student/${student.id}`" class="btn-action view-btn text-decoration-none me-2">
+                            <i class="fas fa-eye"></i> View
+                        </router-link>
                         <button v-if="!student.blacklisted" class="btn-action revoke-btn" @click="revokeStudent(student.id)">
                             <i class="fas fa-times-circle"></i> Blacklist
                         </button>
                         <button v-else-if="student.blacklisted" class="btn-action approve-btn" @click="whitelistStudent(student.id)">
                             <i class="fas fa-check-circle"></i> Whitelist
                         </button>
-                        <span v-else class="text-muted small">N/A</span>
                     </td>
 
                 </template>
@@ -131,8 +140,10 @@ import axios from "axios"
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 import Table from '@/components/ui/Table.vue'
 import StatCard from '@/components/ui/StatCard.vue'
+import Search from '@/components/ui/Search.vue'
 
 const students = ref([])
+const searchQuery = ref('')
 const flashMsg = ref('')
 const flashMsgError = ref('')
 
@@ -180,12 +191,15 @@ const statConfig = {
     }
 }
 
-// -- Fetch drives on mount --
-const fetchStudents = async () => {
+// -- Fetch students on mount --
+const fetchStudents = async (search = '') => {
     const token = localStorage.getItem("token")
 
     try {
-        const res = await fetch('http://127.0.0.1:5555/api/admin/all-students', {
+        const url = new URL('http://127.0.0.1:5555/api/admin/all-students')
+        if (search) url.searchParams.append('search', search)
+
+        const res = await fetch(url.toString(), {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -201,6 +215,17 @@ const fetchStudents = async () => {
         errorMsg('Server error. Please try again later.')
     }
 }
+
+// Debounced search
+let searchTimeout = null
+import { watch } from 'vue'
+watch(searchQuery, (newVal) => {
+    if (searchTimeout) clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(() => {
+        allCurrentPage.value = 1 // reset to first page on search
+        fetchStudents(newVal)
+    }, 500)
+})
 
 onMounted(() => {
     fetchStudents()
@@ -380,6 +405,23 @@ const paginatedAll = computed(() => {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.view-btn {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+.view-btn:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4), 0 2px 4px -1px rgba(59, 130, 246, 0.2);
+}
+
+.hover-primary:hover {
+    color: var(--color-primary) !important;
+}
+
 .approve-btn {
     background-color: #10b981;
     color: #ffffff;
@@ -505,10 +547,10 @@ const paginatedAll = computed(() => {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 </style>
