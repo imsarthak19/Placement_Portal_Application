@@ -1,5 +1,5 @@
 <template>
-    <CompanyProfile :companyId="companyId" />
+    <CompanyProfile :companyId="companyId" :showDrives="true" />
 </template>
 
 <script setup>

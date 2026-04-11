@@ -7,27 +7,30 @@
           <h1 class="h2 fw-bold text-dark mb-1">Admin Dashboard</h1>
           <p class="text-muted mb-0">Welcome back, Administrator. Here's what's happening today.</p>
         </div>
+        <!-- Might add some other button here later -->
         <div class="header-actions">
+           <div v-if="loading" class="spinner-border spinner-border-sm text-primary me-2" role="status">
+             <span class="visually-hidden">Loading...</span>
+           </div>
           <button class="btn btn-brand-primary px-4 py-2 rounded-3 fw-bold shadow-sm">
-            <i class="fas fa-file-alt me-2"></i>Generate Report
+            <router-link to="/admin/reports" class="text-white text-decoration-none">
+              <i class="fas fa-file-alt me-2"></i>Generate Report
+            </router-link>
           </button>
         </div>
       </header>
 
       <!-- Stats Grid -->
+       <!-- Future adds - Total Shortlisted, Total Hired, Total Rejected, etc. -->
       <div class="row g-4 mb-5">
-        <div v-for="(stat, key) in statConfig" :key="key" class="col-sm-6 col-xl-3">
-          <div class="card h-100 border-0 shadow-sm rounded-4 p-2">
-            <div class="card-body d-flex align-items-center gap-3">
-              <div :class="['stat-icon-wrapper rounded-3 d-flex align-items-center justify-content-center flex-shrink-0', stat.bgClass]">
-                <i :class="[stat.icon, stat.textClass, 'fs-4']"></i>
-              </div>
-              <div class="overflow-hidden">
-                <span class="text-muted small fw-bold text-uppercase ls-wide d-block mb-1">{{ stat.label }}</span>
-                <h3 class="mb-0 fw-extrabold h4">{{ stats[key] || 0 }}</h3>
-              </div>
-            </div>
-          </div>
+        <div v-for="(config, key) in statConfig" :key="key" class="col-sm-6 col-md-4">
+          <StatCard
+            :label="config.label"
+            :value="stats[key]"
+            :icon="config.icon"
+            :bgClass="config.bgClass"
+            :textClass="config.textClass"
+          />
         </div>
       </div>
 
@@ -39,13 +42,19 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
+import StatCard from '@/components/ui/StatCard.vue'
+import router from '@/router'
 
 const stats = ref({
   students: 0,
   companies: 0,
   drives: 0,
-  applications: 0
+  applications: 0,
+  shortlisted: 0,
+  interviews: 0
 })
+
+const loading = ref(true)
 
 const statConfig = {
   students: {
@@ -53,7 +62,6 @@ const statConfig = {
     icon: 'fas fa-user-graduate',
     bgClass: 'bg-indigo-soft',
     textClass: 'text-indigo',
-    change: '+12% from last month',
   },
   companies: {
     label: 'Total Companies',
@@ -72,45 +80,50 @@ const statConfig = {
     icon: 'fas fa-file-alt',
     bgClass: 'bg-orange-soft',
     textClass: 'text-orange',
+  },
+  shortlisted: {
+    label: 'Shortlisted',
+    icon: 'fas fa-user-check',
+    bgClass: 'bg-amber-soft',
+    textClass: 'text-amber',
+  },
+  interviews: {
+    label: 'Interviews',
+    icon: 'fas fa-calendar-check',
+    bgClass: 'bg-cyan-soft',
+    textClass: 'text-cyan',
   }
 }
 
-const activities = ref([
-  { id: 1, text: 'New company "TechCorp" registered', time: '2 mins ago' },
-  { id: 2, text: 'Placement drive for "DataSystems" approved', time: '1 hour ago' },
-  { id: 3, text: 'Student "Rahul Sharma" updated resume', time: '3 hours ago' },
-  { id: 4, text: 'System backup completed successfully', time: '5 hours ago' }
-])
-
-const upcomingDrives = ref([
-  { id: 1, title: 'Software Engineer Intern', companyName: 'Google', companyCode: 'G', date: 'Oct 15, 2026', status: 'open' },
-  { id: 2, title: 'Product Manager', companyName: 'Microsoft', companyCode: 'M', date: 'Oct 18, 2026', status: 'upcoming' },
-  { id: 3, title: 'Data Scientist', companyName: 'Meta', companyCode: 'F', date: 'Oct 20, 2026', status: 'draft' }
-])
-
-function getStatusBadgeClass(status) {
-  const map = {
-    open: 'bg-success text-white',
-    upcoming: 'bg-primary text-white',
-    draft: 'bg-secondary text-white'
-  }
-  return map[status] || 'bg-light text-dark'
-}
-
+// # Fetching Admin Stats
 const fetchStats = async () => {
     const token = localStorage.getItem("token")
+    if (!token) {
+        console.error("No token found")
+        return
+    }
+    loading.value = true
     try {
         const res = await axios.get('http://127.0.0.1:5555/api/admin/stats', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         })
-        stats.value = res.data
+        console.log("Admin Stats Data:", res.data)
+        // Update stats object
+        Object.keys(res.data).forEach(key => {
+            if (key in stats.value) {
+                stats.value[key] = res.data[key]
+            }
+        })
     } catch (err) {
         console.error("Fetch stats error:", err)
+    } finally {
+        loading.value = false
     }
 }
 
+// Things to be done on mount
 onMounted(async () => {
   await fetchStats()
 })
@@ -151,14 +164,32 @@ onMounted(async () => {
 .text-emerald { color: #059669; }
 .bg-orange-soft { background-color: #fff7ed; }
 .text-orange { color: #ea580c; }
+.bg-amber-soft { background-color: #fffbeb; }
+.text-amber { color: #d97706; }
+.bg-cyan-soft { background-color: #ecfeff; }
+.text-cyan { color: #0891b2; }
 
 .stat-icon-wrapper {
-  width: 52px;
-  height: 52px;
+  width: 58px;
+  height: 58px;
+  transition: all 0.3s ease;
+}
+
+.card:hover .stat-icon-wrapper {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
 }
 
 .smaller {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 /* Timeline Custom Styles */

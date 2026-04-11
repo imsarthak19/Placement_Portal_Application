@@ -9,10 +9,6 @@
                 </div>
                 <Search v-model="searchQuery" placeholder="Search drives by title, company, location..." />
             </div>
-            <div class="header-actions">
-                <!-- <button class="btn-primary">
-                    <i class="fas fa-download"></i>Export List</button> -->
-            </div>
         </header>
   
         <div class="flash-container">
@@ -152,11 +148,9 @@
                                 :class="{
                                     'bg-success': drive.status === 'Active',
                                     'bg-secondary': drive.status === 'Closed',
-                                    'bg-warning text-dark': drive.status === 'Unapproved' || drive.status === 'uapproved',
-                                    'bg-danger': drive.status === 'Rejected',
-                                    'bg-info text-dark': drive.status === 'Hired'
+                                    'bg-warning text-dark': drive.status === 'Unapproved'
                                 }">
-                                {{ drive.status === 'uapproved' ? 'Unapproved' : drive.status }}
+                                {{ drive.status }}
                             </span>
                         </td>
 
@@ -164,11 +158,8 @@
                             <router-link :to="`/admin/drive/${drive.id}`" class="btn-action view-btn text-decoration-none me-2">
                                 <i class="fas fa-eye"></i> View
                             </router-link>
-                            <button v-if="drive.status === 'Active'" class="btn-action revoke-btn"@click="rejectDrive(drive.id)">
-                                <i class="fas fa-times-circle"></i> Reject
-                            </button>
-                            <button v-else-if="drive.status === 'Rejected'" class="btn-action approve-btn" @click="approveDrive(drive.id)">
-                                <i class="fas fa-check-circle"></i> Approve
+                            <button v-if="drive.status === 'Active'" class="btn-action revoke-btn" @click="rejectDrive(drive.id)">
+                                <i class="fas fa-undo"></i> Revoke
                             </button>
                         </td>
                     </template>
@@ -205,7 +196,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import axios from "axios"
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 import Table from '@/components/ui/Table.vue'
@@ -304,9 +295,8 @@ const fetchDrives = async (search = '') => {
     }
 }
 
-// Debounced search
+// Search
 let searchTimeout = null
-import { watch } from 'vue'
 watch(searchQuery, (newVal) => {
     if (searchTimeout) clearTimeout(searchTimeout)
     searchTimeout = setTimeout(() => {
@@ -316,13 +306,14 @@ watch(searchQuery, (newVal) => {
     }, 500)
 })
 
+
 onMounted(() => {
     fetchDrives()
 })
 
 // Stats computation
 const totalDrivesCount = computed(() => drives.value.length)
-const pendingDrives = computed(() => drives.value.filter(d => d.status === 'uapproved' || d.status === 'Unapproved'))
+const pendingDrives = computed(() => drives.value.filter(d => d.status === 'Unapproved'))
 const pendingDrivesCount = computed(() => pendingDrives.value.length)
 const activeDrivesCount = computed(() => drives.value.filter(d => d.status === 'Active').length)
 
@@ -345,6 +336,7 @@ const paginatedAll = computed(() => {
     return drives.value.slice(start, start + itemsPerPage)
 })
 
+// # Approve Drive 
 const approveDrive = async (driveId) => {
     flashMsg.value = ''
     try {
@@ -378,6 +370,7 @@ const approveDrive = async (driveId) => {
     }
 }
 
+// # Revoke approved drives so that students cannot apply to them anymore
 const rejectDrive = async (driveId) => {
     flashMsg.value = ''
     try {
@@ -398,11 +391,11 @@ const rejectDrive = async (driveId) => {
             }
         )
 
-        showFlash('Drive rejected successfully.')
+        showFlash('Drive revoked successfully.')
 
         // update UI
         drives.value = drives.value.map(d => {
-            if (d.id === driveId) return { ...d, status: 'Rejected' }
+            if (d.id === driveId) return { ...d, status: 'Unapproved' }
             return d
         })
 

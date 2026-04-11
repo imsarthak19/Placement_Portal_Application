@@ -9,11 +9,24 @@
 
     <!-- User Profile Card -->
     <div class="user-profile py-3 px-4 mb-3 d-flex align-items-center gap-3 profile-divider">
-      <div class="avatar-box bg-brand-secondary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm">
-        <i class="fas fa-user-shield text-brand-primary" v-if="role === 'admin'"></i>
-        <i class="fas fa-building text-brand-primary" v-else-if="role === 'recruiter'"></i>
-        <i class="fas fa-user-graduate text-brand-primary" v-else></i>
+      <div class="avatar-box bg-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm">
+
+        <!-- Show logo if available -->
+        <img 
+          v-if="user.logo" 
+          :src="user.logo" 
+          alt="User Logo" 
+          class="w-100 h-100 rounded-circle object-fit-cover"
+        />
+
+        <!-- Otherwise fallback to role-based icons -->
+        <template v-else>
+          <i class="fas fa-user-shield text-brand-primary" v-if="role === 'admin'"></i>
+          <i class="fas fa-building text-brand-primary" v-else-if="role === 'recruiter'"></i>
+          <i class="fas fa-user-graduate text-brand-primary" v-else></i>
+        </template>
       </div>
+
       <div class="user-details overflow-hidden">
         <h6 class="mb-0 fw-semibold text-white text-truncate small">{{ user?.username }}</h6>
         <span class="text-secondary text-white opacity-75 fw-bold text-uppercase user-role-text">{{ user?.type }}</span>

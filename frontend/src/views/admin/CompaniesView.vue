@@ -8,6 +8,7 @@
                 <div class="headder-tag">MANAGEMENT CONSOLE</div>
                 <h1>Company Management</h1>
             </div>
+            <!-- Search component -->
             <Search v-model="searchQuery" placeholder="Search companies by name, email, industry..." />
         </div>
     </header>
@@ -208,6 +209,7 @@ import Table from '@/components/ui/Table.vue'
 import StatCard from '@/components/ui/StatCard.vue'
 import Search from '@/components/ui/Search.vue'
 
+// Company Table columns
 const companyColumns = [
     { key: 'company', label: 'Company', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
     { key: 'industry', label: 'Industry', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
@@ -219,6 +221,7 @@ const companyColumns = [
 const companies = ref([])
 const searchQuery = ref('')
 
+// Alert Msg Logic
 const flashMsg = ref('')
 const showFlash = (message) => {
     flashMsg.value = message
@@ -288,7 +291,7 @@ const fetchCompanies = async (search = '') => {
     }
 }
 
-// Debounced search
+// Search
 let searchTimeout = null
 import { watch } from 'vue'
 import router from '@/router'
@@ -331,6 +334,7 @@ const paginatedActive = computed(() => {
     return activeCompanies.value.slice(start, start + itemsPerPage)
 })
 
+// Approve Comanies with pending status
 const approveCompany = async (companyId) => {
     flashMsg.value = ''
     try {
@@ -369,6 +373,7 @@ const approveCompany = async (companyId) => {
   }
 }
 
+// Blacklist Company
 const revokeCompany = async (companyId) => {
     flashMsg.value = ''
     try {
@@ -407,6 +412,7 @@ const revokeCompany = async (companyId) => {
   }
 }
 
+// Whitelist Company
 const whitelistCompany = async (companyId) => {
     flashMsg.value = ''
     try {
@@ -726,11 +732,11 @@ const whitelistCompany = async (companyId) => {
 /* transition animations */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 </style>

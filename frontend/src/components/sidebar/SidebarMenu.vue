@@ -62,7 +62,9 @@ const menuConfigs = {
   ],
   recruiter: [
     { label: 'Dashboard', path: '/company-dash', icon: 'fas fa-th-large' },
-    { label: 'Our Drives', path: '/company/drives', icon: 'fas fa-briefcase' },
+    { label: 'Our Drives', path: '/company/all-drives', icon: 'fas fa-briefcase' },
+    { label: 'Shortlisted', path: '/company/shortlisted', icon: 'fas fa-user-check' },
+    { label: 'Interviews', path: '/company/interviews', icon: 'fas fa-calendar-alt' },
     { label: 'Applications', path: '/company/applications', icon: 'fas fa-file-alt' },
     { label: 'Profile', path: '/company/profile', icon: 'fas fa-user-tie' }
   ],

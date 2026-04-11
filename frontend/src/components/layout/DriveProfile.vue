@@ -1,5 +1,5 @@
 <template>
-  <DashboardLayout role="admin">
+  <DashboardLayout :role="userRole">
     <div class="container-fluid py-4 px-md-4">
         <!-- Page Header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,9 +7,22 @@
                 <h1 class="h3 fw-bold mb-1" style="color: var(--color-text);">Drive Detail</h1>
                 <p class="text-muted mb-0">View comprehensive details and applicant history for this placement drive.</p>
             </div>
-            <button class="btn btn-light shadow-sm border d-flex align-items-center gap-2 fw-medium px-3" @click="$router.go(-1)">
-                <i class="fas fa-arrow-left"></i> Back
-            </button>
+            <div class="d-flex gap-2">
+                <button v-if="canEdit" class="btn btn-primary shadow-sm border-0 d-flex align-items-center gap-2 fw-medium px-4 rounded-3" @click="navigateToEdit">
+                    <i class="fas fa-edit"></i> Edit Drive
+                </button>
+                <button v-if="showApplyBtn" class="btn btn-primary shadow-sm border-0 d-flex align-items-center gap-2 fw-medium px-4 rounded-3" @click="handleApply" :disabled="applying">
+                    <i v-if="applying" class="fas fa-spinner fa-spin"></i>
+                    <i v-else class="fas fa-paper-plane"></i>
+                    Apply Now
+                </button>
+                <button v-if="hasApplied" class="btn btn-success shadow-sm border-0 d-flex align-items-center gap-2 fw-medium px-4 rounded-3" disabled>
+                    <i class="fas fa-check-circle"></i> Already Applied
+                </button>
+                <button class="btn btn-light shadow-sm border d-flex align-items-center gap-2 fw-medium px-3 rounded-3" @click="$router.go(-1)">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            </div>
         </div>
 
         <div class="flash-container z-3">
@@ -43,7 +56,7 @@
                                 <h2 class="fw-bold mb-1 d-flex align-items-center gap-2 text-dark">
                                     {{ drive.title || 'Drive Title' }}
                                 </h2>
-                                <router-link :to="`/admin/company/${drive.company_id}`" class="text-decoration-none">
+                                <router-link :to="`/${rolePrefix}/company/${drive.company_id}`" class="text-decoration-none">
                                     <span class="text-primary fw-semibold h5 mb-0 hover-opacity">
                                         <i class="fas fa-building me-1"></i> {{ drive.company_name || 'Company Name' }}
                                     </span>
@@ -96,7 +109,7 @@
                             </div>
                         </div>
 
-                        <div class="mb-2">
+                        <div class="mb-2" v-if="user.type !== 'student'">
                             <h5 class="fw-bold text-dark d-flex align-items-center justify-content-between gap-2 mb-4">
                                 <span class="d-flex align-items-center gap-2">
                                     <div class="icon-square text-primary bg-primary bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-center p-2">
@@ -112,7 +125,7 @@
                             <Table :columns="tableColumns" :data="applications">
                                 <template #row="{ item: app }">
                                     <td class="py-3 px-4">
-                                        <router-link :to="`/admin/student/${app.student_id}`" class="text-decoration-none">
+                                        <router-link :to="`/${rolePrefix}/student/${app.student_id}`" class="text-decoration-none">
                                             <div class="fw-bold text-dark hover-primary">{{ app.student_name }}</div>
                                             <small class="text-muted">{{ app.roll_number }}</small>
                                         </router-link>
@@ -124,20 +137,34 @@
                                         {{ app.cgpa }}
                                     </td>
                                     <td class="py-3 px-3 text-muted text-center"><small>{{ formatDate(app.applied_at) }}</small></td>
-                                    <td class="py-3 px-4 text-center">
-                                        <span class="badge rounded-pill px-3 py-2 fw-medium shadow-sm"
+                                    <td class="py-3 px-3 text-center">
+                                        <span class="badge rounded-pill px-3 py-2 fw-medium shadow-sm border"
                                               :class="{
-                                                  'bg-info text-dark': app.status.toLowerCase() === 'applied',
-                                                  'bg-primary': app.status.toLowerCase() === 'interviewing',
-                                                  'bg-success': app.status.toLowerCase() === 'hired' || app.status.toLowerCase() === 'selected',
-                                                  'bg-danger': app.status.toLowerCase() === 'rejected'
+                                                  'bg-info bg-opacity-10 text-info border-info border-opacity-25': app.status.toLowerCase() === 'applied',
+                                                  'bg-warning bg-opacity-10 text-warning border-warning border-opacity-25': app.status.toLowerCase() === 'shortlisted',
+                                                  'bg-primary bg-opacity-10 text-primary border-primary border-opacity-25': app.status.toLowerCase() === 'interviewing',
+                                                  'bg-success bg-opacity-10 text-success border-success border-opacity-25': ['hired', 'selected', 'offered', 'placed'].includes(app.status.toLowerCase()),
+                                                  'bg-danger bg-opacity-10 text-danger border-danger border-opacity-25': app.status.toLowerCase() === 'rejected'
                                               }">
                                             {{ app.status }}
                                         </span>
                                     </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <div v-if="userRole === 'recruiter' && app.status.toLowerCase() === 'applied'" class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-sm btn-outline-success rounded-pill px-3 text-success">
+                                                <i class="fas fa-user-check"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3" @click="openRejectModalLocal(app)" title="Reject">
+                                                <i class="fas fa-user-times"></i>
+                                            </button>
+                                        </div>
+                                        <div v-else class="text-muted small">
+                                            <i class="fas fa-info-circle me-1"></i> No actions
+                                        </div>
+                                    </td>
                                 </template>
                                 <template #empty>
-                                    <td colspan="5" class="text-center py-5 text-muted">
+                                    <td colspan="6" class="text-center py-5 text-muted">
                                         <div class="fs-1 mb-3 opacity-50">👥</div>
                                         <h5 class="fw-bold">No applicants yet.</h5>
                                         <p class="mb-0">Applications will appear here once students start applying.</p>
@@ -198,7 +225,7 @@
                             
                             <div class="mb-4">
                                 <small class="text-muted d-block mb-2 fw-bold text-uppercase" style="font-size: 0.7rem;">Education Criteria</small>
-                                <p v-if="drive" class="text-dark small mb-0">{{ drive.educationCriteria || 'Not specified' }}</p>
+                                <p v-if="drive" class="text-dark small mb-0">{{ drive.eligibility || 'Not specified' }}</p>
                                 <div v-else class="placeholder-glow"><span class="placeholder col-12 rounded"></span></div>
                             </div>
 
@@ -219,12 +246,41 @@
                 </div>
             </div>
         </div>
+
+        <!-- Reject Modal -->
+        <div v-if="showRejectModalLocal" class="modal-backdrop fade show" @click="closeRejectModalLocal"></div>
+        <div v-if="showRejectModalLocal" class="modal fade show d-block" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">Reject Application</h5>
+                        <button type="button" class="btn-close" @click="closeRejectModalLocal"></button>
+                    </div>
+                    <div class="modal-body py-4">
+                        <p class="text-muted border-start border-4 border-danger ps-3">
+                            Are you sure you want to reject <strong>{{ selectedAppLocal?.student_name }}</strong>? This action cannot be undone.
+                        </p>
+                        <div class="mt-4">
+                            <label class="form-label small fw-bold text-uppercase opacity-75">Reason for Rejection (Optional)</label>
+                            <textarea v-model="rejectCommentLocal" class="form-control rounded-3" rows="3" placeholder="Explain why the candidate is being rejected..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4" @click="closeRejectModalLocal">Cancel</button>
+                        <button type="button" class="btn btn-danger rounded-pill px-4" @click="submitRejectionLocal" :disabled="updatingStatus">
+                            <i v-if="updatingStatus" class="fas fa-spinner fa-spin me-2"></i> Confirm Rejection
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </DashboardLayout>
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
+    import { ref, onMounted, computed } from 'vue'
+    import { useRouter } from 'vue-router'
     import axios from "axios"
     import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
     import Table from '@/components/ui/Table.vue'
@@ -233,21 +289,136 @@
         driveId: {
             type: [String, Number],
             required: true
+        },
+        role: {
+            type: String,
+            default: 'admin'
         }
     })
 
-    const tableColumns = [
-        { key: 'student', label: 'Candidate', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
-        { key: 'branch', label: 'Branch', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
-        { key: 'cgpa', label: 'CGPA', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase text-center' },
-        { key: 'appliedAt', label: 'Applied Date', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase text-center' },
-        { key: 'status', label: 'Status', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase text-center' }
-    ]
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const userRole = user.type
+    const rolePrefix = user.type === 'admin' ? 'admin' : (user.type === 'recruiter' ? 'company' : 'student')
+    const router = useRouter()
+
+    const canEdit = computed(() => {
+        if (user.type === 'admin') return true
+        if (user.type === 'recruiter' && drive.value && drive.value.company_id === user.id) return true
+        return false
+    })
+
+    const showApplyBtn = computed(() => user.type === 'student' && drive.value && !drive.value.hasApplied)
+    const hasApplied = computed(() => user.type === 'student' && drive.value && drive.value.hasApplied)
+    const applying = ref(false)
+
+    const navigateToEdit = () => {
+        router.push(`/${rolePrefix}/drive/${props.driveId}/edit`)
+    }
+
+    const handleApply = async () => {
+    applying.value = true
+    const token = localStorage.getItem("token")
+
+    try {
+        const res = await axios.post(
+            `http://127.0.0.1:5555/api/student/apply/${props.driveId}`,
+            {},
+            {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }
+        )
+
+        if (res.status === 201) {
+            showFlash("Successfully applied to drive!")
+            drive.value.hasApplied = true
+        }
+
+    } catch (err) {
+        const status = err.response?.status
+        const message = err.response?.data?.message
+
+        // 🎯 Specific handling
+        if (status === 404 && message === "Student profile not found") {
+            showFlash("Please update your student profile to apply for this drive.")
+        }
+        else if (status === 400) {
+            showFlash(message || "Already applied to this drive.")
+        }
+        else {
+            errorMsg(message || "Failed to apply")
+        }
+
+    } finally {
+        applying.value = false
+    }
+}
+
+    const tableColumns = computed(() => {
+        const cols = [
+            { key: 'student', label: 'Candidate', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase' },
+            { key: 'branch', label: 'Branch', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase' },
+            { key: 'cgpa', label: 'CGPA', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase text-center' },
+            { key: 'appliedAt', label: 'Applied Date', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase text-center' },
+            { key: 'status', label: 'Status', class: 'py-3 px-3 text-secondary fw-semibold text-uppercase text-center' }
+        ]
+        if (userRole === 'recruiter') {
+            cols.push({ key: 'actions', label: 'Actions', class: 'py-3 px-4 text-secondary fw-semibold text-uppercase text-center' })
+        }
+        return cols
+    })
 
     const drive = ref(null)
     const applications = ref([])
     const flashMsg = ref('')
     const flashMsgError = ref('')
+
+    const showRejectModalLocal = ref(false)
+    const selectedAppLocal = ref(null)
+    const rejectCommentLocal = ref('')
+    const updatingStatus = ref(false)
+
+    const handleAppStatusUpdate = async (appId, status, comment = null) => {
+        updatingStatus.value = true
+        const token = localStorage.getItem("token")
+        try {
+            await axios.post(`http://127.0.0.1:5555/api/company/update-application-status/${appId}`, {
+                status,
+                comment
+            }, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            showFlash(`Candidate successfully ${status}!`)
+            await fetchApplications()
+        } catch (err) {
+            console.error("Status Update Error:", err)
+            errorMsg(err.response?.data?.error || "Failed to update status.")
+        } finally {
+            updatingStatus.value = false
+        }
+    }
+
+    const openRejectModalLocal = (app) => {
+        selectedAppLocal.value = app
+        rejectCommentLocal.value = ''
+        showRejectModalLocal.value = true
+    }
+
+    const closeRejectModalLocal = () => {
+        showRejectModalLocal.value = false
+        selectedAppLocal.value = null
+        rejectCommentLocal.value = ''
+    }
+
+    const submitRejectionLocal = async () => {
+        if (!selectedAppLocal.value) return
+        await handleAppStatusUpdate(selectedAppLocal.value.id, 'rejected', rejectCommentLocal.value)
+        closeRejectModalLocal()
+    }
+
+    const showFlash = (message) => {
+        flashMsg.value = message
+        setTimeout(() => { flashMsg.value = "" }, 2500)
+    }
 
     const errorMsg = (message) => {
         flashMsgError.value = message
@@ -256,13 +427,16 @@
 
     onMounted(async () => {
         await fetchDrive()
-        await fetchApplications()
+        if (user.type !== 'student') {
+            await fetchApplications()
+        }
     })
 
     const fetchDrive = async () => {
         const token = localStorage.getItem("token")
         try {
-            const res = await axios.get(`http://127.0.0.1:5555/api/admin/drive-details/${props.driveId}`, {
+            const apiPrefix = user.type === 'admin' ? 'admin' : (user.type === 'recruiter' ? 'company' : 'student')
+            const res = await axios.get(`http://127.0.0.1:5555/api/${apiPrefix}/drive-details/${props.driveId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             drive.value = res.data
@@ -275,7 +449,8 @@
     const fetchApplications = async () => {
         const token = localStorage.getItem("token")
         try {
-            const res = await axios.get(`http://127.0.0.1:5555/api/admin/drive-applications/${props.driveId}`, {
+            const apiPrefix = userRole === 'admin' ? 'admin' : 'company'
+            const res = await axios.get(`http://127.0.0.1:5555/api/${apiPrefix}/drive-applications/${props.driveId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             applications.value = res.data

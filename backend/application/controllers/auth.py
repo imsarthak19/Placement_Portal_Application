@@ -5,6 +5,7 @@ from application.models import User, Company
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
+
 # LOGIN
 @app.route("/api/login", methods=["POST"])
 def login():
@@ -75,7 +76,9 @@ def login():
         "message": "Login successful",
         "token": token,
         "type": account_type,
-        "username": account.username
+        "username": account.username,
+        "id": account.id,
+        "logo": account.logo
     })
 
 

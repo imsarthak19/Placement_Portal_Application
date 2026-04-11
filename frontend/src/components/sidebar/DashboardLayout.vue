@@ -37,6 +37,7 @@ onMounted(() => {
   /* Offset for fixed sidebar width (230px) */
   margin-left: 230px;
   transition: all 0.3s ease;
+  overflow-x: hidden;
 }
 
 @media (max-width: 991.98px) {

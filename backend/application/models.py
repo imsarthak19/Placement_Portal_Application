@@ -12,6 +12,7 @@ class User(db.Model, UserMixin):
     type = db.Column(db.String(50), default='user', nullable=False)
     isBlacklisted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=ist_now)
+    logo = db.Column(db.String(150), nullable=True)
     student = db.relationship('Student', backref='user', lazy=True, uselist=False)
 
 class Student(db.Model):
@@ -47,7 +48,7 @@ class Company(db.Model, UserMixin):
 class Drive(db.Model):
     id = db.Column(db.Integer, primary_key=True, index=True)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False, index=True)
-    status = db.Column(db.String(50), default='uapproved', nullable=False)
+    status = db.Column(db.String(50), default='Unapproved', nullable=False)
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
     eligibility = db.Column(db.String(150), nullable=True)

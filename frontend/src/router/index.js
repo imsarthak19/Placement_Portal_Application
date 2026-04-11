@@ -10,14 +10,25 @@ import CompaniesView from '@/views/admin/CompaniesView.vue'
 import CompanyDetailView from '@/views/admin/CompanyDetailView.vue'
 import StudentsView from '@/views/admin/StudentsView.vue'
 import StudentDetailView from '@/views/admin/StudentDetailView.vue'
-import DrivesView from '@/views/admin/DrivesView.vue'
+import DriveView from '@/views/admin/DrivesView.vue'
 import DriveDetailView from '@/views/admin/DriveDetailView.vue'
+import CompanyEditView from '@/views/admin/CompanyEditView.vue'
+import DriveEditView from '@/views/admin/DriveEditView.vue'
 import ApplicationsView from '@/views/admin/ApplicationsView.vue'
 import ReportsView from '@/views/admin/ReportsView.vue'
 
 
-import CompanyDashView from '@/views/CompanyDashView.vue'
-import StudentDashView from '@/views/StudentDashView.vue'
+import CompanyDashView from '@/views/company/CompanyDashView.vue'
+import AllDrivesView from '@/views/company/AllDrivesView.vue'
+import CompanyProfile from '@/views/company/CompanyProfileView.vue'
+import CompanyApplicationsView from '@/views/company/CompanyApplicationsView.vue'
+
+
+import StudentDashView from '@/views/student/StudentDashView.vue'
+import AvailableDrivesView from '@/views/student/AvailableDrivesView.vue'
+import StudentProfileView from '@/views/student/StudentProfileView.vue'
+import EditStudentProfileView from '@/views/student/EditStudentProfileView.vue'
+import RecruiterDriveView from '@/views/student/RecruiterDriveView.vue'
 
 const routes = [
   {
@@ -52,38 +63,53 @@ const routes = [
 
   {
     path: '/admin/companies',
-    name: 'Companies',
+    name: 'AdminCompanies',
     component: CompaniesView
   },
 
   {
     path: '/admin/company/:id',
-    name: 'CompanyDetails',
+    name: 'AdminCompanyDetail',
     component: CompanyDetailView
+  },
+  {
+    path: '/admin/company/:id/edit',
+    name: 'AdminCompanyEdit',
+    component: CompanyEditView
   },
 
   {
     path: '/admin/students',
-    name: 'Students',
+    name: 'AdminStudents',
     component: StudentsView
   },
 
   {
     path: '/admin/student/:id',
-    name: 'StudentDetails',
+    name: 'AdminStudentDetail',
     component: StudentDetailView
   },
 
   {
     path: '/admin/drive/:id',
-    name: 'DriveDetails',
+    name: 'AdminDriveDetail',
     component: DriveDetailView
+  },
+  {
+    path: '/admin/drive/:id/edit',
+    name: 'AdminDriveEdit',
+    component: DriveEditView
+  },
+  {
+    path: '/admin/drive/create',
+    name: 'AdminDriveCreate',
+    component: DriveEditView
   },
 
   {
     path: '/admin/drives',
-    name: 'AllDrives',
-    component: DrivesView
+    name: 'AdminDrives',
+    component: DriveView
   },
 
   {
@@ -103,11 +129,81 @@ const routes = [
     name: 'CompanyDashboard',
     component: CompanyDashView
   },
+  {
+    path: '/company/profile',
+    name: 'CompanyProfile',
+    component: CompanyProfile
+  },
+  {
+    path: '/company/profile/edit',
+    name: 'CompanyProfileEdit',
+    component: CompanyEditView
+  },
+  {
+    path: '/company/all-drives',
+    name: 'RecruiterAllDrives',
+    component: AllDrivesView
+  },
+  {
+    path: '/company/shortlisted',
+    name: 'RecruiterShortlisted',
+    component: () => import('@/views/company/ShortlistedCandidatesView.vue')
+  },
+  {
+    path: '/company/interviews',
+    name: 'RecruiterInterviews',
+    component: () => import('@/views/company/CompanyInterviewsView.vue')
+  },
+  {
+    path: '/company/applications',
+    name: 'RecruiterApplications',
+    component: CompanyApplicationsView
+  },
+  {
+    path: '/company/drive/:id',
+    name: 'DriveDetailView',
+    component: DriveDetailView
+  },
+  {
+    path: '/company/student/:id',
+    name: 'RecruiterStudentDetail',
+    component: StudentDetailView
+  },
+  {
+    path: '/company/drive/:id/edit',
+    name: 'RecruiterDriveEdit',
+    component: DriveEditView
+  },
+  {
+    path: '/company/drive/create',
+    name: 'RecruiterDriveCreate',
+    component: DriveEditView
+  },
 
   {
     path: '/student-dash',
     name: 'StudentDashboard',
     component: StudentDashView
+  },
+  {
+    path: '/student/drives',
+    name: 'StudentAvailableDrives',
+    component: AvailableDrivesView
+  },
+  {
+    path: '/student/drive/:id',
+    name: 'RecruiterDriveView',
+    component: RecruiterDriveView
+  },
+  {
+    path: '/student/profile',
+    name: 'StudentProfile',
+    component: StudentProfileView
+  },
+  {
+    path: '/student/profile/edit',
+    name: 'StudentProfileEdit',
+    component: EditStudentProfileView
   }
 ]
 
@@ -116,30 +212,30 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const user = JSON.parse(localStorage.getItem('user'))
 
   const publicPages = ['/', '/login', '/signup', '/company-signup']
   const authRequired = !publicPages.includes(to.path)
 
   if (authRequired && !user) {
-    return next('/login')
+    return '/login'
   }
 
   // Role-based protection
-  if (to.path.startsWith('/company-dash') && user?.type !== 'recruiter') {
-    return next('/login')
+  if (to.path.startsWith('/admin') && user?.type !== 'admin') {
+    return '/login'
   }
 
-  if (to.path.startsWith('/admin-dash') && user?.type !== 'admin') {
-    return next('/login')
+  if (to.path.startsWith('/company') && user?.type !== 'recruiter') {
+    return '/login'
   }
 
-  if (to.path.startsWith('/student-dash') && user?.type !== 'student') {
-    return next('/login')
+  if (to.path.startsWith('/student') && user?.type !== 'student') {
+    return '/login'
   }
 
-  next()
+  return true
 })
 
 export default router

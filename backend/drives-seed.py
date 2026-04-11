@@ -6,7 +6,7 @@ import random
 
 def seed_drives():
 
-    statuses = ["Unapproved", "Active", "Closed", "Hired"]
+    statuses = ["Unapproved", "Active", "Closed"]
     work_modes = ["Onsite", "Remote", "Hybrid"]
     locations = ["Bangalore", "Hyderabad", "Delhi", "Mumbai", "Pune"]
     roles = [
