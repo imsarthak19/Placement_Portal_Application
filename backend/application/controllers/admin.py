@@ -575,3 +575,20 @@ def get_drive_applications(drive_id):
 
     set_cache(cache_key, result, expiry=60)
     return jsonify(result)
+
+@app.route('/api/admin/trigger-platform-report', methods=['POST'])
+@jwt_required()
+def trigger_platform_report():
+    user_identity = get_jwt_identity()
+    if user_identity["type"] != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    # Get user email from DB as it's not in JWT identity
+    admin_user = User.query.get(user_identity['id'])
+    if not admin_user:
+        return jsonify({"error": "Admin user not found"}), 404
+        
+    from application.tasks import generate_platform_report_csv
+    generate_platform_report_csv.delay(admin_user.email)
+    
+    return jsonify({"message": "Platform report generation started. You will receive it via email shortly."}), 202

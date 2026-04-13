@@ -12,11 +12,7 @@
            <div v-if="loading" class="spinner-border spinner-border-sm text-primary me-2" role="status">
              <span class="visually-hidden">Loading...</span>
            </div>
-          <button class="btn btn-brand-primary px-4 py-2 rounded-3 fw-bold shadow-sm">
-            <router-link to="/admin/reports" class="text-white text-decoration-none">
-              <i class="fas fa-file-alt me-2"></i>Generate Report
-            </router-link>
-          </button>
+     
         </div>
       </header>
 

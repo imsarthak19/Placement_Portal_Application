@@ -58,7 +58,7 @@ const menuConfigs = {
     { label: 'Students', path: '/admin/students', icon: 'fas fa-user-graduate' },
     { label: 'Drives', path: '/admin/drives', icon: 'fas fa-briefcase' },
     { label: 'Applications', path: '/admin/applications', icon: 'fas fa-file-alt' },
-    // { label: 'Reports', path: '/admin/reports', icon: 'fas fa-chart-pie' }
+    { label: 'Reports', path: '/admin/reports', icon: 'fas fa-chart-pie' }
   ],
   recruiter: [
     { label: 'Dashboard', path: '/company-dash', icon: 'fas fa-th-large' },

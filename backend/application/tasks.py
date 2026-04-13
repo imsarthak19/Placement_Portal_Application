@@ -199,3 +199,51 @@ def send_daily_interview_reminders(self):
             send_reminder_email.delay(student_email)
             
     return {"status": "reminders_queued", "count": len(upcoming_interviews)}
+
+
+# Platform Wide Report for Admin
+@celery.task(bind=True)
+def generate_platform_report_csv(self, admin_email):
+    print(f"Starting Platform Wide CSV export for admin: {admin_email}")
+    time.sleep(5)  # simulate intensive work
+    
+    from app import app
+    with app.app_context():
+        # Get overall stats for the report
+        total_students = Student.query.count()
+        total_companies = Company.query.count()
+        total_applications = Application.query.count()
+        total_placed = Application.query.filter(Application.status.in_(['placed', 'hired'])).count()
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['Platform Placement Report', 'Date:', datetime.datetime.now().strftime('%Y-%m-%d')])
+        writer.writerow([])
+        writer.writerow(['Metric', 'Value'])
+        writer.writerow(['Total Students', total_students])
+        writer.writerow(['Total Companies', total_companies])
+        writer.writerow(['Total Applications', total_applications])
+        writer.writerow(['Total Placements', total_placed])
+        writer.writerow([])
+        writer.writerow(['Recent Placements'])
+        writer.writerow(['Student', 'Company', 'Drive', 'Package', 'Status', 'Date'])
+        
+        recent_placements = Application.query.filter(Application.status.in_(['placed', 'hired'])).limit(100).all()
+        for p in recent_placements:
+             writer.writerow([
+                p.student.user.name if p.student and p.student.user else "N/A",
+                p.drive.company.name if p.drive and p.drive.company else "N/A",
+                p.drive.title if p.drive else "N/A",
+                p.drive.payScale if p.drive else "N/A",
+                p.status,
+                p.updated_at.strftime('%Y-%m-%d') if p.updated_at else 'N/A'
+            ])
+            
+        csv_content = output.getvalue()
+        output.close()
+        
+        print(f"Emailing Platform Report CSV to {admin_email}...")
+        time.sleep(2)
+        print(f"Platform Export task complete!")
+
+    return {"status": "success", "email": admin_email}
