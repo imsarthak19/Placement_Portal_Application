@@ -1,7 +1,7 @@
 from .database import db
 from flask_login import UserMixin
 import datetime
-from .utlis import ist_now
+from .utils import ist_now
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

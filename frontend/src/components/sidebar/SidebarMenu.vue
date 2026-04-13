@@ -20,14 +20,14 @@
     <!-- Bottom Section -->
     <div class="mt-auto py-4 border-top border-white border-opacity-10">
       <div class="d-grid gap-1">
-        <router-link 
+        <!-- <router-link 
           to="/settings" 
           class="nav-link dashboard-link d-flex align-items-center gap-3 py-2 px-3"
           active-class="active"
         >
           <i class="fas fa-cog menu-icon"></i>
           <span class="menu-text">Settings</span>
-        </router-link>
+        </router-link> -->
         
         <button 
           @click="handleLogout" 

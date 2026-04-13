@@ -59,7 +59,7 @@ with app.app_context():
 # -------------------- Routes --------------------
 
 from application.controllers.system import *
-from application.controllers import auth, system, admin, company, common, student
+from application.controllers import auth, system, admin, company, student
 
 # -------------------- Run App --------------------
 

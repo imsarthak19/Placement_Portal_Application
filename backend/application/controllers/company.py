@@ -5,6 +5,7 @@ from application.models import User, Company, Drive, Application, Interview
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import datetime
+from application.utils import get_cache, set_cache
 
 # Create Drive
 @app.route('/api/company/create-drive', methods=['POST'])
@@ -175,15 +176,23 @@ def get_company_all_applications():
     if user["type"] != "recruiter":
         return jsonify({"error": "Unauthorized"}), 403
 
+    company_id = user['id']
+    cache_key = f"recruiter:applications:{company_id}"
+    cached_data = get_cache(cache_key)
+    if cached_data:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached_data)
+
+    print(f"CACHE MISS: {cache_key}")
     # Fetch all applications for all drives belonging to this company
-    applications = Application.query.join(Drive).filter(Drive.company_id == user['id']).all()
+    applications = Application.query.join(Drive).filter(Drive.company_id == company_id).all()
     
-    apps_data = []
+    result = []
     for app_record in applications:
         student_model = app_record.student
         user_model = student_model.user if student_model else None
         
-        apps_data.append({
+        result.append({
             "id": app_record.id,
             "student_id": user_model.id if user_model else None,
             "student_name": user_model.name if user_model else "Unknown",
@@ -196,7 +205,8 @@ def get_company_all_applications():
             "applied_at": app_record.created_at.isoformat() if app_record.created_at else None
         })
 
-    return jsonify(apps_data)
+    set_cache(cache_key, result, expiry=60)
+    return jsonify(result)
 
 # Update Application Status
 @app.route('/api/company/update-application-status/<int:app_id>', methods=['PUT', 'POST'])
@@ -269,8 +279,16 @@ def get_shortlisted_applications():
     if user["type"] != "recruiter":
         return jsonify({"error": "Unauthorized"}), 403
 
+    company_id = user['id']
+    cache_key = f"recruiter:shortlisted:{company_id}"
+    cached_data = get_cache(cache_key)
+    if cached_data:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached_data)
+
+    print(f"CACHE MISS: {cache_key}")
     # Get all drives for this company
-    drives = Drive.query.filter_by(company_id=user['id']).all()
+    drives = Drive.query.filter_by(company_id=company_id).all()
     drive_ids = [d.id for d in drives]
 
     # Get all shortlisted applications for these drives
@@ -279,13 +297,13 @@ def get_shortlisted_applications():
         Application.status == 'shortlisted'
     ).order_by(Application.created_at.desc()).all()
 
-    output = []
+    result = []
     for app_record in shortlisted_apps:
         student_model = app_record.student
         user_model = student_model.user
         drive_model = app_record.drive
         
-        output.append({
+        result.append({
             "id": app_record.id,
             "student_id": user_model.id,
             "student_name": user_model.name,
@@ -304,7 +322,8 @@ def get_shortlisted_applications():
             } for i in app_record.interviews]
         })
 
-    return jsonify(output), 200
+    set_cache(cache_key, result, expiry=60)
+    return jsonify(result)
 
 # Schedule Interview for an Application
 @app.route('/api/company/schedule-interview/<int:app_id>', methods=['POST'])
@@ -407,6 +426,13 @@ def get_company_stats():
         return jsonify({"error": "Unauthorized"}), 403
 
     company_id = user['id']
+    cache_key = f"recruiter:stats:{company_id}"
+    cached_data = get_cache(cache_key)
+    if cached_data:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached_data)
+
+    print(f"CACHE MISS: {cache_key}")
     from application.models import Drive, Application, Interview
     
     total_drives = Drive.query.filter_by(company_id=company_id).count()
@@ -419,11 +445,88 @@ def get_company_stats():
     
     interviews_count = Interview.query.join(Application).join(Drive).filter(Drive.company_id == company_id).count()
 
-    return jsonify({
+    result = {
         "total_drives": total_drives,
         "active_drives": active_drives,
         "total_applications": total_applications,
         "shortlisted": shortlisted_applications,
         "hired": hired_candidates,
         "interviews": interviews_count
-    })
+    }
+    
+    set_cache(cache_key, result, expiry=60)
+    return jsonify(result)
+
+# Get All Drives for the Logged-in Company
+@app.route('/api/company/all-drives', methods=['GET'])
+@jwt_required()
+def get_logged_in_company_drives():
+    user = get_jwt_identity()
+    if user["type"] != "recruiter":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    company_id = user['id']
+    cache_key = f"recruiter:drives:{company_id}"
+    cached_data = get_cache(cache_key)
+    if cached_data:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached_data)
+
+    print(f"CACHE MISS: {cache_key}")
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Company not found"}), 404
+
+    drives = company.drives
+    result = [
+        {
+            "id": d.id,
+            "title": d.title,
+            "location": d.location,
+            "workMode": d.workMode,
+            "status": d.status,
+            "payScale": d.payScale,
+            "positions": d.positions,
+            "company_name": company.name,
+            "company_logo": company.logo,
+            "created_at": d.created_at.isoformat() if d.created_at else None
+        } for d in drives
+    ]
+
+    set_cache(cache_key, result, expiry=60)
+    return jsonify(result)
+
+# API Returns the company profile for the company, will use it in Admin, Company and Student Dashboard
+@app.route('/api/company-profile/<int:company_id>', methods=['GET'])
+@jwt_required()
+def get_company_profile(company_id):
+    cache_key = f"company:profile:{company_id}"
+    cached_data = get_cache(cache_key)
+    if cached_data:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached_data)
+
+    print(f"CACHE MISS: {cache_key}")
+    company = Company.query.get(company_id)
+
+    if not company:
+        return {"message": "Company not found"}, 404
+
+    result = {
+        "name": company.name,
+        "email": company.email,
+        "approved": company.approved,
+        'description': company.description,
+        "scale": company.scale,
+        "headOffice": company.headOffice,
+        "website": company.website,
+        'pocName': company.pocName,
+        'pocEmail': company.pocEmail,
+        "icon": company.logo,
+        "industry": company.industry,
+        "blacklisted": company.isBlacklisted,
+        "created_at": company.created_at.isoformat()
+    }
+    
+    set_cache(cache_key, result, expiry=60)
+    return jsonify(result)

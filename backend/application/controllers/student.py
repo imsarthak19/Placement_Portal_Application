@@ -4,6 +4,7 @@ from application.database import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import app
 from sqlalchemy import or_
+from application.utils import get_cache, set_cache
 
 @app.route('/api/student/interviews', methods=['GET'])
 @jwt_required()
@@ -55,12 +56,22 @@ def get_student_stats():
     if not user or user.type != 'student':
         return jsonify({"message": "Unauthorized"}), 403
 
+    cache_key = f"student:stats:{user_id}"
+    cached_data = get_cache(cache_key)
+    if cached_data:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached_data)
+
+    print(f"CACHE MISS: {cache_key}")
     student = Student.query.filter_by(user_id=user_id).first()
     
     active_drives_count = Drive.query.filter_by(status='Active').count()
     active_recruiters_count = Company.query.filter_by(approved=True, isBlacklisted=False).count()
     
+    applications_count = 0
+    shortlisted_count = 0
     offers_received_count = 0
+    interviews_count = 0
 
     if student:
         applications_count = Application.query.filter_by(student_id=student.id).count()
@@ -75,30 +86,38 @@ def get_student_stats():
         if app_ids:
             interviews_count = Interview.query.filter(Interview.application_id.in_(app_ids)).count()
 
-    return jsonify({
+    result = {
         "active_drives": active_drives_count,
         "active_recruiters": active_recruiters_count,
         "shortlisted": shortlisted_count,
         "interviews": interviews_count,
         "offers_received": offers_received_count,
         "applied_at": applications_count
-    })
+    }
+    
+    set_cache(cache_key, result, expiry=60)
+    return jsonify(result)
 
 
 @app.route('/api/student/active-drives', methods=['GET'])
 @jwt_required()
 def get_active_drives():
-
     identity = get_jwt_identity()
     user_id = identity["id"]
-
     user = User.query.get(user_id)
 
     if not user or user.type != 'student':
         return {"message": "Unauthorized"}, 403
 
     search = request.args.get('search', '')
+    
+    cache_key = f"student:drives:{user_id}:{search}"
+    cached_data = get_cache(cache_key)
+    if cached_data:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached_data)
 
+    print(f"CACHE MISS: {cache_key}")
     query = Drive.query.join(Company).filter(Drive.status == 'Active')
 
     if search:
@@ -120,7 +139,7 @@ def get_active_drives():
     if not drives:
         return {"message": "No active drives found"}, 404
 
-    return jsonify([
+    result = [
         {
             "id": d.id,
             "title": d.title,
@@ -133,10 +152,13 @@ def get_active_drives():
             "payScale": d.payScale,
             "positions": d.positions,
             "deadline": d.deadline.isoformat() if d.deadline else None,
-            "created_at": d.created_at.isoformat(),
+            "created_at": d.created_at.isoformat() if d.created_at else None,
             "hasApplied": d.id in applied_drive_ids
         } for d in drives
-    ])
+    ]
+
+    set_cache(cache_key, result, expiry=60)
+    return jsonify(result)
 
 
 # Details of a specific drive
@@ -241,31 +263,39 @@ def get_student_applications():
     if not user or user.type != 'student':
         return jsonify({"message": "Unauthorized"}), 403
 
+    cache_key = f"student:apps:{user_id}"
+    cached_data = get_cache(cache_key)
+    if cached_data:
+        print(f"CACHE HIT: {cache_key}")
+        return jsonify(cached_data)
+
+    print(f"CACHE MISS: {cache_key}")
     student = Student.query.filter_by(user_id=user_id).first()
     if not student:
         return jsonify([]), 200
 
     apps = Application.query.filter_by(student_id=student.id).all()
 
-    output = []
-    for app in apps:
-        output.append({
-            "id": app.id,
-            "drive_id": app.drive_id,
-            "drive_title": app.drive.title,
-            "company_name": app.drive.company.name,
-            "company_logo": app.drive.company.logo,
-            "location": app.drive.location,
-            "workMode": app.drive.workMode,
-            "payScale": app.drive.payScale,
-            "status": app.status,
-            "applied_at": app.created_at.isoformat(),
-            "updated_at": app.updated_at.isoformat(),
-            "interviews_scheduled": len(app.interviews),
-            "comment": app.comment
+    result = []
+    for app_record in apps:
+        result.append({
+            "id": app_record.id,
+            "drive_id": app_record.drive_id,
+            "drive_title": app_record.drive.title if app_record.drive else "Unknown",
+            "company_name": app_record.drive.company.name if app_record.drive and app_record.drive.company else "Unknown",
+            "company_logo": app_record.drive.company.logo if app_record.drive and app_record.drive.company else None,
+            "location": app_record.drive.location if app_record.drive else "N/A",
+            "workMode": app_record.drive.workMode if app_record.drive else "N/A",
+            "payScale": app_record.drive.payScale if app_record.drive else "N/A",
+            "status": app_record.status,
+            "applied_at": app_record.created_at.isoformat() if app_record.created_at else None,
+            "updated_at": app_record.updated_at.isoformat() if app_record.updated_at else None,
+            "interviews_scheduled": len(app_record.interviews) if app_record.interviews else 0,
+            "comment": app_record.comment
         })
 
-    return jsonify(output), 200
+    set_cache(cache_key, result, expiry=60)
+    return jsonify(result)
 
 
 # Get current student profile
