@@ -6,8 +6,11 @@
                 <h1 class="h2 fw-bold text-dark mb-1">My Applications</h1>
                 <p class="text-muted mb-0">Track the status of your placement applications.</p>
             </div>
-            <div class="search-wrapper">
+            <div class="d-flex align-items-center gap-2">
                 <Search v-model="searchQuery" placeholder="Search applications..." />
+                <button @click="exportHistory" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm d-none d-md-flex align-items-center gap-2" style="white-space: nowrap;">
+                    <i class="fas fa-file-export"></i> Export History
+                </button>
             </div>
         </header>
 
@@ -175,6 +178,19 @@ const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A'
     const date = new Date(dateStr)
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+const exportHistory = async () => {
+    try {
+        const token = localStorage.getItem('token')
+        const res = await axios.post('http://127.0.0.1:5555/api/student/export-csv', {}, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        alert(res.data.message)
+    } catch (err) {
+        console.error('Error exporting history:', err)
+        alert('Failed to trigger export.')
+    }
 }
 
 onMounted(fetchApplications)

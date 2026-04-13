@@ -5,7 +5,9 @@ from application.models import User, Company, Drive, Application, Interview
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import datetime
-from application.utils import get_cache, set_cache
+from application.utils import get_cache, set_cache, delete_cache
+
+from application.tasks import send_interview_email, send_reminder_email, export_company_data_csv
 
 # Create Drive
 @app.route('/api/company/create-drive', methods=['POST'])
@@ -241,6 +243,12 @@ def update_application_status(app_id):
 
     db.session.commit()
 
+    # Invalidate Cache
+    company_id = user['id']
+    delete_cache(f"recruiter:stats:{company_id}")
+    delete_cache(f"recruiter:applications:{company_id}")
+    delete_cache(f"recruiter:shortlisted:{company_id}")
+
     return jsonify({"message": f"Application status updated to {new_status}"}), 200
 
 # Update Company Profile
@@ -368,7 +376,25 @@ def schedule_interview(app_id):
         db.session.add(new_interview)
         db.session.commit()
 
-        return jsonify({"message": "Interview scheduled successfully", "id": new_interview.id}), 201
+        # Invalidate Cache
+        company_id = user['id']
+        delete_cache(f"recruiter:stats:{company_id}")
+        delete_cache(f"recruiter:shortlisted:{company_id}")
+        delete_cache(f"recruiter:interviews:{company_id}")
+
+        # Trigger async email
+        try:
+            student_email = application.student.user.email
+            drive_title = application.drive.title
+            task = send_interview_email.delay(student_email, drive_title)
+            return jsonify({
+                "message": "Interview scheduled & email triggered",
+                "task_id": task.id
+            }), 201
+        except Exception as e:
+            print(f"CELERY ERROR: {e}")
+            return jsonify({"message": "Interview scheduled but email failed", "id": new_interview.id}), 201
+
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
@@ -416,6 +442,57 @@ def get_company_interviews():
 
     return jsonify(output), 200
 
+# Send Interview Reminder
+@app.route('/api/company/send-reminder/<int:interview_id>', methods=['POST'])
+@jwt_required()
+def send_interview_reminder(interview_id):
+    user = get_jwt_identity()
+    if user["type"] != "recruiter":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    interview = Interview.query.get(interview_id)
+    if not interview:
+        return jsonify({"error": "Interview not found"}), 404
+
+    # Authorization Check
+    if interview.application.drive.company_id != user['id']:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    try:
+        student_email = interview.application.student.user.email
+        task = send_reminder_email.delay(student_email)
+        return jsonify({
+            "message": "Reminder email triggered successfully",
+            "task_id": task.id
+        }), 200
+    except Exception as e:
+        print(f"CELERY REMINDER ERROR: {e}")
+        return jsonify({"error": "Could not trigger reminder. Please ensure Celery is running."}), 500
+
+# Trigger CSV Export
+@app.route('/api/company/export-csv', methods=['POST'])
+@jwt_required()
+def trigger_csv_export():
+    user = get_jwt_identity()
+    if user["type"] != "recruiter":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    company_id = user['id']
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Company not found"}), 404
+    recruiter_email = company.email
+    
+    try:
+        task = export_company_data_csv.delay(company_id, recruiter_email)
+        return jsonify({
+            "message": "CSV export has been triggered. You will receive an email shortly.",
+            "task_id": task.id
+        }), 202
+    except Exception as e:
+        print(f"EXPORT ERROR: {e}")
+        return jsonify({"error": "Failed to trigger export. Is Redis running?"}), 500
+
 
 # Get Company Stats
 @app.route('/api/company/stats', methods=['GET'])
@@ -441,7 +518,7 @@ def get_company_stats():
     apps_query = Application.query.join(Drive).filter(Drive.company_id == company_id)
     total_applications = apps_query.count()
     shortlisted_applications = apps_query.filter(Application.status == 'shortlisted').count()
-    hired_candidates = apps_query.filter(Application.status == 'hired').count()
+    hired_candidates = apps_query.filter(Application.status.in_(['hired', 'placed'])).count()
     
     interviews_count = Interview.query.join(Application).join(Drive).filter(Drive.company_id == company_id).count()
 
@@ -458,14 +535,19 @@ def get_company_stats():
     return jsonify(result)
 
 # Get All Drives for the Logged-in Company
-@app.route('/api/company/all-drives', methods=['GET'])
+@app.route('/api/company/all-drives/<int:company_id>', methods=['GET'])
 @jwt_required()
-def get_logged_in_company_drives():
+def get_logged_in_company_drives(company_id):
     user = get_jwt_identity()
-    if user["type"] != "recruiter":
+    
+    # Recruiter can only see their own drives
+    if user["type"] == "recruiter" and user["id"] != company_id:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    # Only recruiter and admin can access this
+    if user["type"] not in ["recruiter", "admin"]:
         return jsonify({"error": "Unauthorized"}), 403
 
-    company_id = user['id']
     cache_key = f"recruiter:drives:{company_id}"
     cached_data = get_cache(cache_key)
     if cached_data:

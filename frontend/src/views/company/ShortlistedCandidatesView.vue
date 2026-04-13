@@ -252,7 +252,7 @@ const handleSchedule = async () => {
         
         showModal.value = false
         await fetchCandidates()
-        alert('Interview scheduled successfully!')
+        alert(res.data.message || 'Interview scheduled successfully!')
     } catch (err) {
         console.error('Error scheduling interview:', err)
         alert(err.response?.data?.error || 'Failed to schedule interview')

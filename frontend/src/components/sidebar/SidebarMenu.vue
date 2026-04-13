@@ -58,7 +58,7 @@ const menuConfigs = {
     { label: 'Students', path: '/admin/students', icon: 'fas fa-user-graduate' },
     { label: 'Drives', path: '/admin/drives', icon: 'fas fa-briefcase' },
     { label: 'Applications', path: '/admin/applications', icon: 'fas fa-file-alt' },
-    { label: 'Reports', path: '/admin/reports', icon: 'fas fa-chart-bar' }
+    // { label: 'Reports', path: '/admin/reports', icon: 'fas fa-chart-pie' }
   ],
   recruiter: [
     { label: 'Dashboard', path: '/company-dash', icon: 'fas fa-th-large' },
@@ -66,6 +66,7 @@ const menuConfigs = {
     { label: 'Shortlisted', path: '/company/shortlisted', icon: 'fas fa-user-check' },
     { label: 'Interviews', path: '/company/interviews', icon: 'fas fa-calendar-alt' },
     { label: 'Applications', path: '/company/applications', icon: 'fas fa-file-alt' },
+    { label: 'Reports', path: '/company/reports', icon: 'fas fa-chart-pie' },
     { label: 'Profile', path: '/company/profile', icon: 'fas fa-user-tie' }
   ],
   student: [

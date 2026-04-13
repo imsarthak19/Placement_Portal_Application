@@ -158,7 +158,7 @@
                             <router-link :to="`/admin/drive/${drive.id}`" class="btn-action view-btn text-decoration-none me-2">
                                 <i class="fas fa-eye"></i> View
                             </router-link>
-                            <button v-if="drive.status === 'Active'" class="btn-action revoke-btn" @click="rejectDrive(drive.id)">
+                            <button v-if="drive.status === 'Active'" class="btn-action revoke-btn mt-1" @click="rejectDrive(drive.id)">
                                 <i class="fas fa-undo"></i> Revoke
                             </button>
                         </td>

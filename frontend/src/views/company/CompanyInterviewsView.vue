@@ -76,10 +76,17 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer border-0 bg-light p-3 d-flex gap-2">
+                    <div class="card-footer border-0 bg-light p-3 d-flex flex-wrap gap-2">
                         <router-link :to="`/company/student/${interview.student_id}`" class="btn btn-outline-primary btn-sm flex-grow-1 rounded-3">
                             <i class="fas fa-user me-1"></i> Profile
                         </router-link>
+                        <button 
+                            v-if="isUpcoming(interview.scheduled_at)"
+                            @click="sendReminder(interview)" 
+                            class="btn btn-sm btn-outline-warning flex-grow-1 rounded-3"
+                        >
+                            <i class="fas fa-bell me-1"></i> Remind
+                        </button>
                         <button 
                             v-if="interview.application_status !== 'offered' && interview.application_status !== 'hired'"
                             @click="sendOffer(interview)" 
@@ -144,6 +151,19 @@ const sendOffer = async (interview) => {
             console.error('Error sending offer:', err);
             window.alert('Failed to update application status.');
         }
+    }
+}
+
+const sendReminder = async (interview) => {
+    try {
+        const token = localStorage.getItem('token');
+        const res = await axios.post(`http://127.0.0.1:5555/api/company/send-reminder/${interview.id}`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        alert(res.data.message);
+    } catch (err) {
+        console.error('Error sending reminder:', err);
+        alert(err.response?.data?.error || 'Failed to send reminder');
     }
 }
 

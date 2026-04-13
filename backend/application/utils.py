@@ -25,3 +25,9 @@ def set_cache(key, value, expiry=60):
         redis_client.setex(key, expiry, json.dumps(value))
     except Exception as e:
         print(f"REDIS SET ERROR: {e}")
+
+def delete_cache(key):
+    try:
+        redis_client.delete(key)
+    except Exception as e:
+        print(f"REDIS DELETE ERROR: {e}")

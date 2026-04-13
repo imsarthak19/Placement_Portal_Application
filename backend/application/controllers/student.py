@@ -4,7 +4,8 @@ from application.database import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import app
 from sqlalchemy import or_
-from application.utils import get_cache, set_cache
+from application.utils import get_cache, set_cache, delete_cache
+from application.tasks import export_student_data_csv
 
 @app.route('/api/student/interviews', methods=['GET'])
 @jwt_required()
@@ -351,7 +352,6 @@ def create_or_update_student():
 
     data = request.get_json()
 
-    # Validate required fields
     required_fields = ["roll_number", "branch", "year_of_study", "cgpa"]
     for field in required_fields:
         if field not in data or data[field] in [None, ""]:
@@ -359,7 +359,6 @@ def create_or_update_student():
 
     student = Student.query.filter_by(user_id=user_id).first()
 
-    # UPDATE existing
     if student:
         student.roll_number = data["roll_number"]
         student.branch = data["branch"]
@@ -371,7 +370,6 @@ def create_or_update_student():
 
         return {"message": "Student profile updated successfully"}, 200
 
-    # CREATE new
     new_student = Student(
         user_id=user_id,
         roll_number=data["roll_number"],
@@ -410,4 +408,35 @@ def accept_offer(app_id):
     application.status = 'placed'
     db.session.commit()
 
+    # Invalidate caches for both Student and Recruiter
+    company_id = application.drive.company_id
+    delete_cache(f"student:stats:{user_id}")
+    delete_cache(f"student:apps:{user_id}")
+    delete_cache(f"recruiter:stats:{company_id}")
+    delete_cache(f"recruiter:applications:{company_id}")
+
     return jsonify({"message": "Offer accepted successfully. You are now placed!"}), 200
+
+# Student CSV Export
+@app.route('/api/student/export-csv', methods=['POST'])
+@jwt_required()
+def trigger_student_csv_export():
+    identity = get_jwt_identity()
+    user_id = identity["id"]
+    user = User.query.get(user_id)
+    if not user or user.type != 'student':
+        return jsonify({"message": "Unauthorized"}), 403
+
+    student = Student.query.filter_by(user_id=user_id).first()
+    if not student:
+        return jsonify({"message": "Student profile not found"}), 404
+
+    try:
+        task = export_student_data_csv.delay(student.id, user.email)
+        return jsonify({
+            "message": "Export triggered. You will receive your application history via email.",
+            "task_id": task.id
+        }), 202
+    except Exception as e:
+        print(f"STUDENT EXPORT ERROR: {e}")
+        return jsonify({"error": "Failed to trigger export"}), 500

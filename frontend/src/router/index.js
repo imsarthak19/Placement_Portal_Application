@@ -24,6 +24,7 @@ import CompanyProfile from '@/views/company/CompanyProfileView.vue'
 import CompanyApplicationsView from '@/views/company/CompanyApplicationsView.vue'
 import CompanyShortlisted from '@/views/company/ShortlistedCandidatesView.vue'
 import CompanyInterviews from '@/views/company/CompanyInterviewsView.vue'
+import CompanyReportsView from '@/views/company/ReportsView.vue'
 
 
 import StudentDashView from '@/views/student/StudentDashView.vue'
@@ -165,6 +166,11 @@ const routes = [
     component: CompanyApplicationsView
   },
   {
+    path: '/company/reports',
+    name: 'RecruiterReports',
+    component: CompanyReportsView
+  },
+  {
     path: '/company/drive/:id',
     name: 'DriveDetailView',
     component: DriveDetailView
@@ -247,8 +253,11 @@ router.beforeEach((to) => {
     return '/login'
   }
 
-  if (to.path.startsWith('/company') && user?.type !== 'recruiter') {
-    return '/login'
+  // Use a more specific check to exclude /company-signup
+  if (to.path.startsWith('/company/') || to.path === '/company' || to.path.startsWith('/company-dash')) {
+    if (user?.type !== 'recruiter') {
+      return '/login'
+    }
   }
 
   if (to.path.startsWith('/student') && user?.type !== 'student') {
