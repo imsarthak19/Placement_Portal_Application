@@ -116,6 +116,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 
 const route = useRoute()
@@ -147,7 +148,7 @@ onMounted(async () => {
     }
 })
 
-// # fetch drive details for editing
+// Fetch drive details for editing
 const fetchDriveDetails = async () => {
     loading.value = true
     const token = localStorage.getItem('token')
@@ -157,51 +158,67 @@ const fetchDriveDetails = async () => {
                 'Authorization': `Bearer ${token}`
             }
         })
+        
         if (res.ok) {
             const data = await res.json()
             let deadline = ''
             if (data.deadline) {
                 deadline = data.deadline.split('T')[0]
             }
-            formData.value = { ...data, deadline }
+            // Populate form with fetched data
+            formData.value = { 
+                title: data.title || '',
+                description: data.description || '',
+                eligibility: data.eligibility || '',
+                batch: data.batch || '',
+                branches: data.branches || '',
+                skillsRequired: data.skillsRequired || '',
+                payScale: data.payScale || '',
+                location: data.location || '',
+                workMode: data.workMode || 'In-Office',
+                interviewRounds: data.interviewRounds || '',
+                positions: data.positions || null,
+                deadline: deadline
+            }
+        } else {
+            const errData = await res.json()
+            alert('Failed to load drive: ' + (errData.error || 'Server error'))
         }
     } catch (err) {
         console.error('Error fetching drive details:', err)
+        alert('Network error while loading data')
     } finally {
         loading.value = false
     }
 }
 
-// # Updated the drives either by company or admin
+// Updated the drives either by company or admin
 const handleSubmit = async () => {
     loading.value = true
     const token = localStorage.getItem('token')
+    
     const url = driveId.value 
         ? `http://127.0.0.1:5555/api/company/update-drive/${driveId.value}`
         : 'http://127.0.0.1:5555/api/company/create-drive'
     
-    // Using POST for both as per existing logic in modal file, but ideally should be PUT for update
-    const method = 'POST' 
+    const method = driveId.value ? 'put' : 'post'
 
     try {
-        const res = await fetch(url, {
+        const res = await axios({
+            url: url,
             method: method,
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(formData.value)
+            data: formData.value
         })
 
-        if (res.ok) {
+        if (res.status === 200 || res.status === 201) {
             router.go(-1)
-        } else {
-            const error = await res.json()
-            alert(error.error || 'Something went wrong')
         }
     } catch (err) {
         console.error('Error saving drive:', err)
-        alert('Network error')
+        alert(err.response?.data?.error || 'Failed to save drive details')
     } finally {
         loading.value = false
     }

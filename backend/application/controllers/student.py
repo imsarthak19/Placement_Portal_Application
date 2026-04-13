@@ -112,13 +112,6 @@ def get_active_drives():
 
     search = request.args.get('search', '')
     
-    cache_key = f"student:drives:{user_id}:{search}"
-    cached_data = get_cache(cache_key)
-    if cached_data:
-        print(f"CACHE HIT: {cache_key}")
-        return jsonify(cached_data)
-
-    print(f"CACHE MISS: {cache_key}")
     query = Drive.query.join(Company).filter(Drive.status == 'Active')
 
     if search:
@@ -158,7 +151,6 @@ def get_active_drives():
         } for d in drives
     ]
 
-    set_cache(cache_key, result, expiry=60)
     return jsonify(result)
 
 

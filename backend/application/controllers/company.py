@@ -50,6 +50,9 @@ def create_drive():
     db.session.add(new_drive)
     db.session.commit()
     
+    # Invalidate cache
+    delete_cache(f"recruiter:drives:{user['id']}")
+    
     return jsonify({"message": "Drive created successfully", "id": new_drive.id}), 201
 
 # Update Drive
@@ -57,12 +60,18 @@ def create_drive():
 @jwt_required()
 def update_drive(drive_id):
     user = get_jwt_identity()
-    if user["type"] != "recruiter":
+    
+    # Allow admin and recruiter
+    if user["type"] not in ["recruiter", "admin"]:
          return jsonify({"error": "Unauthorized"}), 403
     
     drive = Drive.query.get(drive_id)
-    if not drive or drive.company_id != user['id']:
-        return jsonify({"error": "Drive not found or unauthorized"}), 404
+    if not drive:
+        return jsonify({"error": "Drive not found"}), 404
+
+    # Recruiter check
+    if user["type"] == "recruiter" and drive.company_id != user['id']:
+        return jsonify({"error": "Unauthorized"}), 403
         
     data = request.get_json()
     
@@ -86,6 +95,10 @@ def update_drive(drive_id):
             pass
             
     db.session.commit()
+
+    # Invalidate cache
+    delete_cache(f"recruiter:drives:{drive.company_id}")
+    delete_cache(f"company:profile:{drive.company_id}") # Just in case
     
     return jsonify({"message": "Drive updated successfully"}), 200
 
@@ -111,12 +124,18 @@ def close_drive(drive_id):
 @jwt_required()
 def get_company_drive_details(drive_id):
     user = get_jwt_identity()
-    if user["type"] != "recruiter":
+    
+    # Allow both admin and recruiter
+    if user["type"] not in ["recruiter", "admin"]:
          return jsonify({"error": "Unauthorized"}), 403
     
     drive = Drive.query.get(drive_id)
-    if not drive or drive.company_id != user['id']:
-        return jsonify({"error": "Drive not found or unauthorized"}), 404
+    if not drive:
+        return jsonify({"error": "Drive not found"}), 404
+
+    # Recruiter can only see their own drives
+    if user["type"] == "recruiter" and drive.company_id != user['id']:
+        return jsonify({"error": "Unauthorized"}), 403
         
     return jsonify({
         "id": drive.id,
@@ -135,6 +154,7 @@ def get_company_drive_details(drive_id):
         "interviewRounds": drive.interviewRounds,
         "created_at": drive.created_at.isoformat() if drive.created_at else None,
         "company_name": drive.company.name,
+        "company_id": drive.company_id,
         "company_logo": drive.company.logo
     })
 
@@ -548,13 +568,6 @@ def get_logged_in_company_drives(company_id):
     if user["type"] not in ["recruiter", "admin"]:
         return jsonify({"error": "Unauthorized"}), 403
 
-    cache_key = f"recruiter:drives:{company_id}"
-    cached_data = get_cache(cache_key)
-    if cached_data:
-        print(f"CACHE HIT: {cache_key}")
-        return jsonify(cached_data)
-
-    print(f"CACHE MISS: {cache_key}")
     company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Company not found"}), 404
@@ -575,7 +588,6 @@ def get_logged_in_company_drives(company_id):
         } for d in drives
     ]
 
-    set_cache(cache_key, result, expiry=60)
     return jsonify(result)
 
 # API Returns the company profile for the company, will use it in Admin, Company and Student Dashboard

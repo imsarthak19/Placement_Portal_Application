@@ -7,7 +7,7 @@
                 <p class="text-muted mb-0">View {{ isOwner ? 'and manage your' : 'detailed information and application history of this' }} student profile.</p>
             </div>
             <div class="d-flex gap-2">
-                <button v-if="isOwner && !isEditing" class="btn btn-primary shadow-sm d-flex align-items-center gap-2 fw-medium px-4 rounded-pill" @click="toggleEdit">
+                <button v-if="canEdit && !isEditing" class="btn btn-primary shadow-sm d-flex align-items-center gap-2 fw-medium px-4 rounded-pill" @click="toggleEdit">
                     <i class="fas fa-edit"></i> Edit Profile
                 </button>
                 <button v-if="isEditing" class="btn btn-success shadow-sm d-flex align-items-center gap-2 fw-medium px-4 rounded-pill" @click="saveProfile">
@@ -263,6 +263,9 @@
     const currentUser = JSON.parse(localStorage.getItem('user'))
     const userType = currentUser?.type || 'student'
     const isOwner = computed(() => userType === 'student' && (!props.studentId || props.studentId == currentUser.id))
+    
+    // Admin and Recruiter (manager) can also edit
+    const canEdit = computed(() => isOwner.value || userType === 'admin' || userType === 'recruiter')
 
     const showFlash = (message) => {
         flashMsg.value = message
@@ -370,9 +373,18 @@
     const saveProfile = async () => {
         const token = localStorage.getItem("token")
         
+        // Determine correct API endpoint based on role
+        let url = 'http://127.0.0.1:5555/api/student/profile'
+        let method = 'POST'
+        
+        if (userType === 'admin' || userType === 'recruiter') {
+            url = `http://127.0.0.1:5555/api/admin/update-student/${props.studentId}`
+            method = 'PUT'
+        }
+        
         try {
-            const res = await fetch('http://127.0.0.1:5555/api/student/profile', {
-                method: 'POST',
+            const res = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
@@ -383,7 +395,7 @@
             const data = await res.json()
 
             if (res.ok) {
-                showFlash(data.message)
+                showFlash(data.message || 'Profile updated successfully')
                 isEditing.value = false
                 await fetchStudent()
             } else {

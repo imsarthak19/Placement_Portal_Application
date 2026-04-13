@@ -5,7 +5,7 @@ from application.models import User, Company, Drive, Student, Application, Inter
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
-from application.utils import get_cache, set_cache
+from application.utils import get_cache, set_cache, delete_cache
 from application.extensions import redis_client
 
 
@@ -72,14 +72,6 @@ def get_all_drives():
 
     search_query = request.args.get('search', '')
     
-    # Cache Check
-    cache_key = f"admin:all-drives:{search_query}"
-    cached_data = get_cache(cache_key)
-    if cached_data:
-        print(f"CACHE HIT: {cache_key}")
-        return jsonify(cached_data)
-
-    print(f"CACHE MISS: {cache_key}")
     query = Drive.query
 
     if search_query:
@@ -109,8 +101,6 @@ def get_all_drives():
         } for d in drives
     ]
     
-    set_cache(cache_key, result, expiry=60)
-
     return jsonify(result)
 
 
@@ -204,14 +194,6 @@ def get_all_students():
 
     search_query = request.args.get('search', '')
     
-    # Cache Check
-    cache_key = f"admin:students:{search_query}"
-    cached_data = get_cache(cache_key)
-    if cached_data:
-        print(f"CACHE HIT: {cache_key}")
-        return jsonify(cached_data)
-
-    print(f"CACHE MISS: {cache_key}")
     query = User.query.filter_by(type="student")
 
     if search_query:
@@ -237,8 +219,6 @@ def get_all_students():
         } for s in students
     ]
     
-    set_cache(cache_key, result, expiry=60)
-
     return jsonify(result)
 
 
@@ -423,6 +403,33 @@ def get_student_profile_common(student_id):
     return jsonify(result)
 
 
+# Update Student Profile by Admin/Recruiter
+@app.route('/api/admin/update-student/<int:student_id>', methods=['PUT', 'POST'])
+@jwt_required()
+def admin_update_student_profile(student_id):
+    user = get_jwt_identity()
+    if user["type"] not in ["admin", "recruiter"]:
+         return jsonify({"error": "Unauthorized"}), 403
+    
+    student_details = Student.query.filter_by(user_id=student_id).first()
+    if not student_details:
+        return jsonify({"error": "Student profile not found"}), 404
+        
+    data = request.get_json()
+    
+    student_details.roll_number = data.get("roll_number", student_details.roll_number)
+    student_details.branch = data.get("branch", student_details.branch)
+    student_details.year_of_study = data.get("year_of_study", student_details.year_of_study)
+    student_details.cgpa = data.get("cgpa", student_details.cgpa)
+    student_details.resume = data.get("resume", student_details.resume)
+    
+    db.session.commit()
+    
+    # Invalidate cache
+    delete_cache(f"admin:student-profile:{student_id}")
+    
+    return jsonify({"message": "Student profile updated successfully"}), 200
+
 # Get Single Student Applications will be used by Admin and Student himself
 @app.route('/api/admin/student-applications/<int:student_id>', methods=['GET'])
 @jwt_required()
@@ -478,20 +485,13 @@ def get_drive_details_admin(drive_id):
     if user["type"] != "admin":
         return jsonify({"error": "Unauthorized"}), 403
 
-    cache_key = f"admin:drive-details:{drive_id}"
-    cached_data = get_cache(cache_key)
-    if cached_data:
-        print(f"CACHE HIT: {cache_key}")
-        return jsonify(cached_data)
-
-    print(f"CACHE MISS: {cache_key}")
     drive = Drive.query.get(drive_id)
     if not drive:
         return jsonify({"message": "Drive found"}), 404
 
     company = drive.company
 
-    result = {
+    return jsonify({
         "id": drive.id,
         "title": drive.title,
         "description": drive.description,
@@ -507,10 +507,7 @@ def get_drive_details_admin(drive_id):
         "company_id": drive.company_id,
         "company_logo": company.logo if company else None,
         "created_at": drive.created_at.isoformat() if drive.created_at else None
-    }
-    
-    set_cache(cache_key, result, expiry=60)
-    return jsonify(result)
+    })
 
 
 # Get Single Drive Applications, will beused by Admin & Company (for their own drives)
