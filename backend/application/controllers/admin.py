@@ -318,6 +318,7 @@ def get_admin_stats():
         return jsonify(cached_data)
 
     print(f"CACHE MISS: {cache_key}")
+    # Basic counts
     students_count = User.query.filter_by(type="student").count()
     companies_count = Company.query.count()
     active_drives_count = Drive.query.filter_by(status='Active').count()
@@ -325,13 +326,42 @@ def get_admin_stats():
     shortlisted_count = Application.query.filter_by(status='shortlisted').count()
     interviews_count = Interview.query.count()
 
+    # Data for Charts
+    # 1. Application Status Distribution
+    from sqlalchemy import func
+    app_status_data = db.session.query(Application.status, func.count(Application.id)).group_by(Application.status).all()
+    app_status_dict = {status: count for status, count in app_status_data}
+
+    # 2. Students by Branch
+    student_branch_data = db.session.query(Student.branch, func.count(Student.id)).group_by(Student.branch).all()
+    student_branch_dict = {branch: count for branch, count in student_branch_data}
+
+    # 3. Monthly Drives (Last 6 months)
+    import datetime
+    today = datetime.datetime.now()
+    six_months_ago = today - datetime.timedelta(days=180)
+    
+    # This might be tricky depending on DB (SQLite vs Postgres)
+    # For SQLite/General:
+    drives_trend = db.session.query(
+        func.strftime('%Y-%m', Drive.created_at).label('month'), 
+        func.count(Drive.id)
+    ).filter(Drive.created_at >= six_months_ago).group_by('month').order_by('month').all()
+    
+    drives_trend_dict = {month: count for month, count in drives_trend}
+
     result = {
         "students": students_count,
         "companies": companies_count,
         "drives": active_drives_count,
         "applications": applications_count,
         "shortlisted": shortlisted_count,
-        "interviews": interviews_count
+        "interviews": interviews_count,
+        "charts": {
+            "application_status": app_status_dict,
+            "student_branches": student_branch_dict,
+            "drives_trend": drives_trend_dict
+        }
     }
     
     set_cache(cache_key, result, expiry=60)

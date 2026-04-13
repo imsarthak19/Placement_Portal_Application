@@ -21,7 +21,6 @@
       </header>
 
       <!-- Stats Grid -->
-      <!-- Future adds - Total Shortlisted, Total Hired, Total Rejected, etc. -->
       <div class="row g-4 mb-5">
         <div v-for="(stat, key) in statConfig" :key="key" class="col-sm-6 col-md-4">
           <StatCard 
@@ -34,16 +33,67 @@
         </div>
       </div>
 
+      <!-- Charts Section -->
+      <div class="row g-4 mb-5">
+        <!-- Application Status Distribution (Pie Chart) -->
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm p-4 h-100 rounded-4">
+            <h5 class="fw-bold mb-4 text-dark">Application Status</h5>
+            <div id="status-chart" class="chart-container">
+              <apexchart 
+                type="donut" 
+                height="350" 
+                :options="statusChartOptions" 
+                :series="statusSeries"
+              ></apexchart>
+            </div>
+          </div>
+        </div>
+
+        <!-- Students by Branch (Bar Chart) -->
+        <div class="col-lg-6">
+          <div class="card border-0 shadow-sm p-4 h-100 rounded-4">
+            <h5 class="fw-bold mb-4 text-dark">Students by Branch</h5>
+            <div id="branch-chart" class="chart-container">
+              <apexchart 
+                type="bar" 
+                height="350" 
+                :options="branchChartOptions" 
+                :series="branchSeries"
+              ></apexchart>
+            </div>
+          </div>
+        </div>
+
+        <!-- Placement Trends (Line Chart) -->
+        <div class="col-12">
+          <div class="card border-0 shadow-sm p-4 rounded-4">
+            <h5 class="fw-bold mb-4 text-dark">Placement Drive Trends (Last 6 Months)</h5>
+            <div id="trend-chart" class="chart-container">
+              <apexchart 
+                type="area" 
+                height="350" 
+                :options="trendChartOptions" 
+                :series="trendSeries"
+              ></apexchart>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 import StatCard from '@/components/ui/StatCard.vue'
-import router from '@/router'
+import VueApexCharts from 'vue3-apexcharts'
+
+// Register ApexCharts locally
+const apexchart = VueApexCharts
 
 const stats = ref({
   students: 0,
@@ -54,7 +104,139 @@ const stats = ref({
   interviews: 0
 })
 
+const chartsData = ref({
+  application_status: {},
+  student_branches: {},
+  drives_trend: {}
+})
+
 const loading = ref(true)
+
+// --- Chart Options & Series ---
+
+// 1. Application Status Chart
+const statusSeries = computed(() => Object.values(chartsData.value.application_status))
+const statusChartOptions = computed(() => ({
+  labels: Object.keys(chartsData.value.application_status).map(s => s.charAt(0).toUpperCase() + s.slice(1)),
+  chart: {
+    type: 'donut',
+    fontFamily: "'Inter', sans-serif"
+  },
+  colors: ['#781f19', '#e63946', '#2a9d8f', '#e9c46a', '#f4a261', '#457b9d', '#1d3557'],
+  legend: {
+    position: 'bottom'
+  },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '70%',
+        labels: {
+          show: true,
+          total: {
+            show: true,
+            label: 'Total',
+            formatter: (w) => w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+          }
+        }
+      }
+    }
+  },
+  dataLabels: {
+    enabled: false
+  },
+  responsive: [{
+    breakpoint: 480,
+    options: {
+      chart: {
+        width: 200
+      },
+      legend: {
+        position: 'bottom'
+      }
+    }
+  }]
+}))
+
+// 2. Branch Chart
+const branchSeries = computed(() => [{
+  name: 'Students',
+  data: Object.values(chartsData.value.student_branches)
+}])
+const branchChartOptions = computed(() => ({
+  chart: {
+    type: 'bar',
+    fontFamily: "'Inter', sans-serif",
+    toolbar: { show: false }
+  },
+  plotOptions: {
+    bar: {
+      borderRadius: 8,
+      horizontal: true,
+      distributed: true,
+    }
+  },
+  colors: ['#781f19', '#4f46e5', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6'],
+  dataLabels: {
+    enabled: true,
+    style: {
+      fontSize: '12px',
+      colors: ['#fff']
+    }
+  },
+  xaxis: {
+    categories: Object.keys(chartsData.value.student_branches),
+  },
+  legend: { show: false }
+}))
+
+// 3. Trend Chart
+const trendSeries = computed(() => [{
+  name: 'New Drives',
+  data: Object.values(chartsData.value.drives_trend)
+}])
+const trendChartOptions = computed(() => ({
+  chart: {
+    type: 'area',
+    height: 350,
+    toolbar: { show: false },
+    fontFamily: "'Inter', sans-serif",
+    zoom: { enabled: false }
+  },
+  dataLabels: { enabled: false },
+  stroke: {
+    curve: 'smooth',
+    width: 3,
+    colors: ['#781f19']
+  },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.4,
+      opacityTo: 0.1,
+      stops: [0, 90, 100],
+      colorStops: [
+        {
+          offset: 0,
+          color: "#781f19",
+          opacity: 0.4
+        },
+        {
+          offset: 100,
+          color: "#781f19",
+          opacity: 0.1
+        }
+      ]
+    }
+  },
+  xaxis: {
+    categories: Object.keys(chartsData.value.drives_trend),
+  },
+  colors: ['#781f19'],
+  grid: {
+    borderColor: '#f1f1f1',
+  }
+}))
 
 const statConfig = {
   students: {
@@ -116,6 +298,11 @@ const fetchStats = async () => {
                 stats.value[key] = res.data[key]
             }
         })
+        
+        // Update Chart Data
+        if (res.data.charts) {
+          chartsData.value = res.data.charts
+        }
     } catch (err) {
         console.error("Fetch stats error:", err)
     } finally {
@@ -165,15 +352,6 @@ onMounted(async () => {
   transform: scale(1.1) rotate(5deg);
 }
 
-.card {
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-}
-
 .smaller {
   font-size: 0.7rem;
 }
@@ -216,5 +394,28 @@ onMounted(async () => {
 
 .transition-all {
   transition: all 0.2s ease;
+}
+
+.chart-container {
+  min-height: 350px;
+}
+
+.rounded-4 {
+  border-radius: 1.25rem !important;
+}
+
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    min-height: 300px;
+  }
 }
 </style>
