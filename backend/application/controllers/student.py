@@ -67,7 +67,7 @@ def get_student_stats():
         shortlisted_count = Application.query.filter_by(student_id=student.id, status='shortlisted').count()
         offers_received_count = Application.query.filter(
             Application.student_id == student.id,
-            Application.status.in_(['offered', 'selected', 'hired'])
+            Application.status.in_(['offered', 'selected', 'hired', 'placed'])
         ).count()
         
         # Count interviews
@@ -355,3 +355,29 @@ def create_or_update_student():
     db.session.commit()
 
     return {"message": "Student profile created successfully"}, 201
+
+
+@app.route('/api/student/accept-offer/<int:app_id>', methods=['POST'])
+@jwt_required()
+def accept_offer(app_id):
+    identity = get_jwt_identity()
+    user_id = identity["id"]
+    user = User.query.get(user_id)
+    if not user or user.type != 'student':
+        return jsonify({"message": "Unauthorized"}), 403
+
+    student = Student.query.filter_by(user_id=user_id).first()
+    if not student:
+        return jsonify({"message": "Student profile not found"}), 404
+
+    application = Application.query.get(app_id)
+    if not application or application.student_id != student.id:
+        return jsonify({"message": "Application not found"}), 404
+
+    if application.status.lower() != 'offered':
+        return jsonify({"message": "No offer found for this application"}), 400
+
+    application.status = 'placed'
+    db.session.commit()
+
+    return jsonify({"message": "Offer accepted successfully. You are now placed!"}), 200

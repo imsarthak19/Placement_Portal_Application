@@ -1,18 +1,5 @@
 <template>
     <div class="mt-4">
-        <h5 class="fw-bold text-dark mb-4 d-flex align-items-center gap-2 pb-2 border-bottom">
-            <div class="icon-square text-primary bg-primary bg-opacity-10 rounded shadow-sm d-flex align-items-center justify-content-center p-2 mb-1 me-1">
-                <i class="fas fa-briefcase"></i>
-            </div>
-            Hiring Drives
-        </h5>
-        
-        <div v-if="role === 'recruiter'" class="mb-4 d-flex justify-content-end">
-            <button @click="navigateToCreate" class="btn btn-primary shadow-sm border-0 d-flex align-items-center gap-2 fw-medium px-4 rounded-3">
-                <i class="fas fa-plus-circle"></i> Create Drive
-            </button>
-        </div>
-
         <Table :columns="tableColumns" :data="drives">
             <template #row="{ item: drive }">
                 <td class="py-3 px-4">
@@ -96,14 +83,6 @@ const navigateToEdit = (id) => {
         router.push(`/admin/drive/${id}/edit`)
     } else {
         router.push(`/company/drive/${id}/edit`)
-    }
-}
-
-const navigateToCreate = () => {
-    if (props.role === 'admin') {
-        router.push(`/admin/drive/create`)
-    } else {
-        router.push(`/company/drive/create`)
     }
 }
 const tableColumns = [

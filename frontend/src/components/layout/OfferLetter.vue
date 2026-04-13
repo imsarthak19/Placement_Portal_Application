@@ -84,9 +84,6 @@
             <button @click="printLetter" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2">
                 <i class="fas fa-file-pdf"></i> Download PDF
             </button>
-            <button class="btn btn-outline-secondary rounded-pill px-4 fw-bold small d-flex align-items-center gap-2">
-                <i class="fas fa-paper-plane"></i> Accept This Offer
-            </button>
         </div>
     </div>
   </div>

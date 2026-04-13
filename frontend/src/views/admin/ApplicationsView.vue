@@ -59,9 +59,11 @@
                   
             <Table :columns="applicationColumns" :data="paginatedAll">
                 <template #row="{ item: app }">
-
+                     
                     <td class="py-3 px-4">
-                        <div class="fw-bold text-dark">{{ app.student_name }}</div>
+                        <router-link :to="`/admin/student/${app.student_id}`" class="text-decoration-none">
+                            <div class="fw-bold text-dark">{{ app.student_name }}</div>
+                        </router-link>
                     </td>
 
                     <td class="py-3 px-3">

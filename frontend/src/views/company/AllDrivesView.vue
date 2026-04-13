@@ -6,6 +6,9 @@
                 <h1 class="h3 fw-bold mb-1" style="color: var(--color-text);">Drive Management</h1>
                 <p class="text-muted mb-0">Manage and track all your hiring drives in one place.</p>
             </div>
+            <button @click="navigateToCreate" class="btn btn-primary shadow-sm border-0 d-flex align-items-center gap-2 fw-medium px-4 rounded-3">
+                <i class="fas fa-plus-circle"></i> Create Drive
+            </button>
         </div>
 
         <div class="card shadow-sm border-0 bg-white rounded-4 overflow-hidden mb-4">
@@ -19,6 +22,8 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 import DashboardLayout from '@/components/sidebar/DashboardLayout.vue'
 import CompanyDrives from '@/components/layout/CompanyDrives.vue'
 
@@ -31,6 +36,11 @@ const refreshKey = ref(0)
 const handleSuccess = () => {
     refreshKey.value++
 }
+
+const navigateToCreate = () => {
+        router.push(`/company/drive/create`)
+    }
+
 </script>
 
 

@@ -215,6 +215,7 @@ def get_all_applications():
     return jsonify([
         {
             "id": a.id,
+            "student_id": a.student.user_id if a.student else None,
             "student_name": a.student.user.name if a.student and a.student.user else "Unknown",
             "company_name": a.drive.company.name if a.drive and a.drive.company else "Unknown",
             "drive_title": a.drive.title if a.drive else "Unknown",

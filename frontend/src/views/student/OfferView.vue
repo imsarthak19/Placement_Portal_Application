@@ -1,13 +1,25 @@
 <template>
 <DashboardLayout role="student">
     <div class="offerview-container p-4">
-        <header class="mb-5 d-flex justify-content-between align-items-center d-print-none">
+        <header class="mb-5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 d-print-none">
             <div>
                 <router-link to="/student/applications" class="btn btn-light rounded-pill px-4 shadow-sm border mb-3">
                     <i class="fas fa-arrow-left me-2"></i> Back to Applications
                 </router-link>
-                <h1 class="h3 fw-bold text-dark">Official Appointment Document</h1>
-                <p class="text-muted small">This is your legally binding recruitment document from the company.</p>
+                <h1 class="h3 fw-bold text-dark mb-1">Official Appointment Document</h1>
+                <div class="d-flex align-items-center gap-2">
+                    <p class="text-muted small mb-0">This is your legally binding recruitment document from the company.</p>
+                    <span v-if="offer?.status.toLowerCase() === 'placed'" class="badge bg-success-soft text-success px-3 rounded-pill">
+                        <i class="fas fa-check-circle me-1"></i> Already Accepted
+                    </span>
+                </div>
+            </div>
+            <div v-if="offer && offer.status.toLowerCase() === 'offered'" class="header-actions">
+                <button @click="handleAcceptOffer" :disabled="accepting" class="btn btn-emerald px-4 py-2 rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2">
+                    <span v-if="accepting" class="spinner-border spinner-border-sm" role="status"></span>
+                    <i v-else class="fas fa-check"></i>
+                    {{ accepting ? 'Accepting...' : 'Accept Appointment' }}
+                </button>
             </div>
         </header>
 
@@ -48,6 +60,7 @@ import OfferLetter from '@/components/layout/OfferLetter.vue'
 const route = useRoute()
 const appId = route.params.id
 const loading = ref(true)
+const accepting = ref(false)
 const offer = ref(null)
 
 const user = JSON.parse(localStorage.getItem('user') || '{}')
@@ -60,9 +73,8 @@ const fetchOffer = async () => {
         const res = await axios.get('http://127.0.0.1:5555/api/student/applications', {
             headers: { Authorization: `Bearer ${token}` }
         })
-        // Find the specific application and verify it's an offer
         const app = res.data.find(a => a.id == appId)
-        if (app && (app.status.toLowerCase() === 'offered' || app.status.toLowerCase() === 'hired')) {
+        if (app && (app.status.toLowerCase() === 'offered' || app.status.toLowerCase() === 'placed' || app.status.toLowerCase() === 'hired')) {
             offer.value = app
         }
     } catch (err) {
@@ -72,12 +84,49 @@ const fetchOffer = async () => {
     }
 }
 
+const handleAcceptOffer = async () => {
+    if (!confirm('Are you sure you want to accept this offer? This action is legally binding.')) return
+
+    accepting.value = true
+    try {
+        const token = localStorage.getItem('token')
+        await axios.post(`http://127.0.0.1:5555/api/student/accept-offer/${appId}`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        // Refresh offer data
+        await fetchOffer()
+        alert('Congratulations! You have successfully accepted the offer and are now placed.')
+    } catch (err) {
+        console.error('Error accepting offer:', err)
+        alert(err.response?.data?.message || 'Failed to accept offer. Please try again.')
+    } finally {
+        accepting.value = false
+    }
+}
+
 onMounted(fetchOffer)
 </script>
 
 <style scoped>
 .offerview-container {
     animation: fadeIn 0.4s ease-out;
+}
+
+.btn-emerald {
+    background: #10b981;
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-emerald:hover:not(:disabled) {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.bg-success-soft {
+    background-color: rgba(16, 185, 129, 0.1);
 }
 
 @keyframes fadeIn {

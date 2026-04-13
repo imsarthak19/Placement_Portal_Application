@@ -14,17 +14,14 @@ def seed_drives():
         "Data Scientist",
         "Backend Developer",
         "Frontend Developer",
-        "ML Engineer",
-        "DevOps Engineer",
-        "Product Analyst"
     ]
 
     drives = []
 
-    for i in range(15):
+    for i in range(4):
 
         drive = Drive(
-            company_id=random.choice([1, 2, 3]),
+            company_id=random.choice([1, 2]),
 
             status=random.choice(statuses),
 
