@@ -11,36 +11,6 @@
             </div>
         </header>
 
-        <div class="row g-4 mb-5">
-             <div class="col-md-4">
-                <StatCard 
-                    label="Active Drives" 
-                    :value="drives.length" 
-                    icon="fas fa-briefcase" 
-                    bgClass="bg-primary-soft" 
-                    textClass="text-primary" 
-                />
-            </div>
-            <div class="col-md-4">
-                <StatCard 
-                    label="Applied" 
-                    :value="appliedCount" 
-                    icon="fas fa-check-circle" 
-                    bgClass="bg-success-soft" 
-                    textClass="text-success" 
-                />
-            </div>
-            <div class="col-md-4">
-                <StatCard 
-                    label="Upcoming Deadlines" 
-                    :value="upcomingCount" 
-                    icon="fas fa-clock" 
-                    bgClass="bg-warning-soft" 
-                    textClass="text-warning" 
-                />
-            </div>
-        </div>
-
         <div v-if="loading" class="text-center py-5">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -176,10 +146,6 @@ onMounted(async () => {
     min-width: 320px;
 }
 
-.bg-primary-soft { background-color: rgba(120, 31, 25, 0.08); }
-.bg-success-soft { background-color: rgba(25, 135, 84, 0.08); }
-.bg-warning-soft { background-color: rgba(255, 193, 7, 0.12); }
-
 .drive-card {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -196,8 +162,8 @@ onMounted(async () => {
 
 .drive-title {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    /* -webkit-line-clamp: 2; */
+    /* -webkit-box-orient: vertical; */
     overflow: hidden;
     height: 3rem;
     line-height: 1.5rem;
@@ -209,11 +175,15 @@ onMounted(async () => {
     right: 0;
     background-color: #10b981;
     color: white;
-    padding: 6px 16px;
+    padding: 8px 20px;
     font-size: 0.75rem;
-    font-weight: 700;
-    border-bottom-left-radius: 16px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 800;
+    border-bottom-left-radius: 20px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    z-index: 10;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    backdrop-filter: blur(4px);
 }
 
 .tracking-wider {

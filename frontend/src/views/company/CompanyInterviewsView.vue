@@ -78,11 +78,21 @@
                     </div>
                     <div class="card-footer border-0 bg-light p-3 d-flex gap-2">
                         <router-link :to="`/company/student/${interview.student_id}`" class="btn btn-outline-primary btn-sm flex-grow-1 rounded-3">
-                            <i class="fas fa-user me-1"></i> View Profile
+                            <i class="fas fa-user me-1"></i> Profile
                         </router-link>
-                        <!-- <button v-if="isUpcoming(interview.scheduled_at)" class="btn btn-primary btn-sm flex-grow-1 rounded-3">
-                            <i class="fas fa-edit me-1"></i> Reschedule
-                        </button> -->
+                        <button 
+                            v-if="interview.application_status !== 'offered' && interview.application_status !== 'hired'"
+                            @click="sendOffer(interview)" 
+                            class="btn btn-primary btn-sm flex-grow-1 rounded-3"
+                        >
+                            <i class="fas fa-paper-plane me-1"></i> Send Offer
+                        </button>
+                        <button 
+                            v-else 
+                            class="btn btn-outline-success btn-sm flex-grow-1 rounded-3 disabled"
+                        >
+                            <i class="fas fa-check-double me-1"></i> Offer Sent
+                        </button>
                     </div>
                 </div>
             </div>
@@ -112,6 +122,28 @@ const fetchInterviews = async () => {
         console.error('Error fetching interviews:', err)
     } finally {
         loading.value = false
+    }
+}
+
+const sendOffer = async (interview) => {
+    const isConfirmed = window.confirm(`Send Offer Letter?\n\nYou are about to send a job offer to ${interview.student_name}. Proper documentation should follow!`);
+
+    if (isConfirmed) {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put(`http://127.0.0.1:5555/api/company/update-application-status/${interview.application_id}`, {
+                status: 'offered',
+                comment: 'Congratulations! You have been selected for this position. Please check your email for the offer letter.'
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            interview.application_status = 'offered';
+            window.alert('The application status has been updated to Job Offered.');
+        } catch (err) {
+            console.error('Error sending offer:', err);
+            window.alert('Failed to update application status.');
+        }
     }
 }
 

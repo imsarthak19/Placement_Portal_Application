@@ -337,7 +337,7 @@
         const status = err.response?.status
         const message = err.response?.data?.message
 
-        // 🎯 Specific handling
+        // Specific handling
         if (status === 404 && message === "Student profile not found") {
             showFlash("Please update your student profile to apply for this drive.")
         }
@@ -467,17 +467,67 @@
 </script>
 
 <style scoped>
-.custom-card { transition: all 0.3s ease; }
-.company-logo-wrapper { width: 120px; height: 120px; }
-.icon-circle { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.icon-square { width: 36px; height: 36px; border-radius: 8px; }
-.drive-description :deep(p) { margin-bottom: 1rem; }
-.hover-opacity:hover { opacity: 0.8; }
-.hover-primary:hover { color: var(--color-primary) !important; }
+.custom-card {
+    transition: all 0.3s ease;
+}
 
-.flash-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; min-width: 300px; pointer-events: none; }
-.flash-container > div { pointer-events: auto; }
+.company-logo-wrapper {
+    width: 120px;
+    height: 120px;
+}
 
-.fade-enter-active, .fade-leave-active { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+.icon-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-square {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+
+.drive-description :deep(p) {
+    margin-bottom: 1rem;
+}
+
+.hover-opacity:hover {
+    opacity: 0.8;
+}
+
+.hover-primary:hover {
+    color: var(--color-primary) !important;
+}
+
+.flash-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 300px;
+    pointer-events: none;
+}
+
+.flash-container > div {
+    pointer-events: auto;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+}
+
 </style>

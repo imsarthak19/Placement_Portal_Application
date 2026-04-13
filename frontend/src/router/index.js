@@ -22,6 +22,8 @@ import CompanyDashView from '@/views/company/CompanyDashView.vue'
 import AllDrivesView from '@/views/company/AllDrivesView.vue'
 import CompanyProfile from '@/views/company/CompanyProfileView.vue'
 import CompanyApplicationsView from '@/views/company/CompanyApplicationsView.vue'
+import CompanyShortlisted from '@/views/company/ShortlistedCandidatesView.vue'
+import CompanyInterviews from '@/views/company/CompanyInterviewsView.vue'
 
 
 import StudentDashView from '@/views/student/StudentDashView.vue'
@@ -29,6 +31,9 @@ import AvailableDrivesView from '@/views/student/AvailableDrivesView.vue'
 import StudentProfileView from '@/views/student/StudentProfileView.vue'
 import EditStudentProfileView from '@/views/student/EditStudentProfileView.vue'
 import RecruiterDriveView from '@/views/student/RecruiterDriveView.vue'
+import MyApplications from '@/views/student/MyApplications.vue'
+import StudentInterviewsView from '@/views/student/StudentInterviewsView.vue'
+import OfferView from '@/views/student/OfferView.vue'
 
 const routes = [
   {
@@ -147,12 +152,12 @@ const routes = [
   {
     path: '/company/shortlisted',
     name: 'RecruiterShortlisted',
-    component: () => import('@/views/company/ShortlistedCandidatesView.vue')
+    component: CompanyShortlisted
   },
   {
     path: '/company/interviews',
     name: 'RecruiterInterviews',
-    component: () => import('@/views/company/CompanyInterviewsView.vue')
+    component: CompanyInterviews
   },
   {
     path: '/company/applications',
@@ -204,6 +209,21 @@ const routes = [
     path: '/student/profile/edit',
     name: 'StudentProfileEdit',
     component: EditStudentProfileView
+  },
+  {
+    path: '/student/applications',
+    name: 'StudentApplications',
+    component: MyApplications
+  },
+  {
+    path: '/student/interviews',
+    name: 'StudentInterviews',
+    component: StudentInterviewsView
+  },
+  {
+    path: '/student/offer-letter/:id',
+    name: 'StudentOfferLetter',
+    component: OfferView
   }
 ]
 

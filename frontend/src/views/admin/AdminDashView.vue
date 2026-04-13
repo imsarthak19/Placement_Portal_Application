@@ -21,15 +21,15 @@
       </header>
 
       <!-- Stats Grid -->
-       <!-- Future adds - Total Shortlisted, Total Hired, Total Rejected, etc. -->
+      <!-- Future adds - Total Shortlisted, Total Hired, Total Rejected, etc. -->
       <div class="row g-4 mb-5">
-        <div v-for="(config, key) in statConfig" :key="key" class="col-sm-6 col-md-4">
-          <StatCard
-            :label="config.label"
-            :value="stats[key]"
-            :icon="config.icon"
-            :bgClass="config.bgClass"
-            :textClass="config.textClass"
+        <div v-for="(stat, key) in statConfig" :key="key" class="col-sm-6 col-md-4">
+          <StatCard 
+            :label="stat.label"
+            :value="stats[key] || 0"
+            :icon="stat.icon"
+            :bgClass="stat.bgClass"
+            :textClass="stat.textClass"
           />
         </div>
       </div>
@@ -154,20 +154,6 @@ onMounted(async () => {
 .fw-extrabold {
   font-weight: 800;
 }
-
-/* Custom Stat Icon Colors (Soft Backgrounds) */
-.bg-indigo-soft { background-color: #eef2ff; }
-.text-indigo { color: #4f46e5; }
-.bg-pink-soft { background-color: #fdf2f8; }
-.text-pink { color: #db2777; }
-.bg-emerald-soft { background-color: #ecfdf5; }
-.text-emerald { color: #059669; }
-.bg-orange-soft { background-color: #fff7ed; }
-.text-orange { color: #ea580c; }
-.bg-amber-soft { background-color: #fffbeb; }
-.text-amber { color: #d97706; }
-.bg-cyan-soft { background-color: #ecfeff; }
-.text-cyan { color: #0891b2; }
 
 .stat-icon-wrapper {
   width: 58px;

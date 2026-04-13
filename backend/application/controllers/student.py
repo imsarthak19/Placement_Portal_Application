@@ -1,9 +1,88 @@
 from flask import request, jsonify
-from application.models import User, Student, Company, Drive, Application
+from application.models import User, Student, Company, Drive, Application, Interview
 from application.database import db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import app
 from sqlalchemy import or_
+
+@app.route('/api/student/interviews', methods=['GET'])
+@jwt_required()
+def get_student_interviews():
+    identity = get_jwt_identity()
+    user_id = identity["id"]
+    user = User.query.get(user_id)
+    if not user or user.type != 'student':
+        return jsonify({"message": "Unauthorized"}), 403
+
+    student = Student.query.filter_by(user_id=user_id).first()
+    if not student:
+        return jsonify([]), 200
+
+    # Get all applications for the student
+    applications = Application.query.filter_by(student_id=student.id).all()
+    app_ids = [app.id for app in applications]
+
+    if not app_ids:
+        return jsonify([]), 200
+
+    # Get all interviews for those applications
+    interviews = Interview.query.filter(Interview.application_id.in_(app_ids)).order_by(Interview.scheduled_at.asc()).all()
+
+    output = []
+    for interview in interviews:
+        output.append({
+            "id": interview.id,
+            "drive_title": interview.application.drive.title,
+            "drive_id": interview.application.drive_id,
+            "company_name": interview.application.drive.company.name,
+            "company_logo": interview.application.drive.company.logo,
+            "scheduled_at": interview.scheduled_at.isoformat(),
+            "mode": interview.mode,
+            "location": interview.location,
+            "meeting_link": interview.meeting_link,
+            "status": interview.application.status
+        })
+
+    return jsonify(output), 200
+
+
+@app.route('/api/student/stats', methods=['GET'])
+@jwt_required()
+def get_student_stats():
+    identity = get_jwt_identity()
+    user_id = identity["id"]
+    user = User.query.get(user_id)
+    if not user or user.type != 'student':
+        return jsonify({"message": "Unauthorized"}), 403
+
+    student = Student.query.filter_by(user_id=user_id).first()
+    
+    active_drives_count = Drive.query.filter_by(status='Active').count()
+    active_recruiters_count = Company.query.filter_by(approved=True, isBlacklisted=False).count()
+    
+    offers_received_count = 0
+
+    if student:
+        applications_count = Application.query.filter_by(student_id=student.id).count()
+        shortlisted_count = Application.query.filter_by(student_id=student.id, status='shortlisted').count()
+        offers_received_count = Application.query.filter(
+            Application.student_id == student.id,
+            Application.status.in_(['offered', 'selected', 'hired'])
+        ).count()
+        
+        # Count interviews
+        app_ids = [app.id for app in Application.query.filter_by(student_id=student.id).all()]
+        if app_ids:
+            interviews_count = Interview.query.filter(Interview.application_id.in_(app_ids)).count()
+
+    return jsonify({
+        "active_drives": active_drives_count,
+        "active_recruiters": active_recruiters_count,
+        "shortlisted": shortlisted_count,
+        "interviews": interviews_count,
+        "offers_received": offers_received_count,
+        "applied_at": applications_count
+    })
 
 
 @app.route('/api/student/active-drives', methods=['GET'])
@@ -33,6 +112,11 @@ def get_active_drives():
 
     drives = query.all()
 
+    student = Student.query.filter_by(user_id=user_id).first()
+    applied_drive_ids = []
+    if student:
+        applied_drive_ids = [app.drive_id for app in Application.query.filter_by(student_id=student.id).all()]
+
     if not drives:
         return {"message": "No active drives found"}, 404
 
@@ -42,12 +126,15 @@ def get_active_drives():
             "title": d.title,
             "company_name": d.company.name,
             "company_logo": d.company.logo,
+            "company_id": d.company_id,
             "location": d.location,
             "workMode": d.workMode,
             "status": d.status,
             "payScale": d.payScale,
             "positions": d.positions,
-            "created_at": d.created_at.isoformat()
+            "deadline": d.deadline.isoformat() if d.deadline else None,
+            "created_at": d.created_at.isoformat(),
+            "hasApplied": d.id in applied_drive_ids
         } for d in drives
     ])
 
@@ -67,13 +154,23 @@ def get_drive_details(drive_id):
 
     drive = Drive.query.get(drive_id)
 
-    if not drive or drive.status != "Active":
-        return {"message": "Drive not found or inactive"}, 404
+    if not drive:
+        return {"message": "Drive not found"}, 404
+
+    student = Student.query.filter_by(user_id=user_id).first()
+    has_applied = False
+    if student:
+        has_applied = Application.query.filter_by(student_id=student.id, drive_id=drive_id).first() is not None
+
+    # Students can see the drive if it is 'Active' OR if they have already applied to it
+    if drive.status != "Active" and not has_applied:
+        return {"message": "Drive is inactive"}, 404
 
     return jsonify({
         "id": drive.id,
         "title": drive.title,
         "company_name": drive.company.name,
+        "company_id": drive.company_id,
         "company_logo": drive.company.logo,
         "description": drive.description,
         "eligibility": drive.eligibility,
@@ -87,7 +184,8 @@ def get_drive_details(drive_id):
         "interviewRounds": drive.interviewRounds,
         "positions": drive.positions,
         "status": drive.status,
-        "created_at": drive.created_at.isoformat()
+        "created_at": drive.created_at.isoformat(),
+        "hasApplied": has_applied
     })
 
 # Aplly to sepcific drive
@@ -156,10 +254,15 @@ def get_student_applications():
             "drive_id": app.drive_id,
             "drive_title": app.drive.title,
             "company_name": app.drive.company.name,
+            "company_logo": app.drive.company.logo,
+            "location": app.drive.location,
+            "workMode": app.drive.workMode,
+            "payScale": app.drive.payScale,
             "status": app.status,
             "applied_at": app.created_at.isoformat(),
             "updated_at": app.updated_at.isoformat(),
-            "interviews_scheduled": len(app.interviews)
+            "interviews_scheduled": len(app.interviews),
+            "comment": app.comment
         })
 
     return jsonify(output), 200

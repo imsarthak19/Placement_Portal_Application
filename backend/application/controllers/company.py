@@ -1,7 +1,7 @@
 from app import app, bcrypt
 from flask import request, jsonify
 from sqlalchemy import or_
-from application.models import User, Company, Drive, Application
+from application.models import User, Company, Drive, Application, Interview
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import datetime
@@ -331,7 +331,6 @@ def schedule_interview(app_id):
         return jsonify({"error": "Date and mode are required"}), 400
 
     try:
-        from application.models import Interview
         # Parse ISO datetime
         scheduled_at = datetime.datetime.fromisoformat(scheduled_at_str.replace('Z', '+00:00'))
         
@@ -392,7 +391,8 @@ def get_company_interviews():
             "mode": i.mode,
             "location": i.location,
             "meeting_link": i.meeting_link,
-            "created_at": i.created_at.isoformat()
+            "created_at": i.created_at.isoformat(),
+            "application_status": app_record.status
         })
 
     return jsonify(output), 200

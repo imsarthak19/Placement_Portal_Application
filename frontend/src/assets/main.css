@@ -13,3 +13,59 @@ body{
   --color-bg: #ffffff;
   --color-text: #1a1a1a;
 }
+
+
+/* The following code helps in printing the require content only, like the Offer letter. */
+@media print {
+
+    /* A4 Page Setup */
+    @page {
+        size: A4;
+        margin: 20mm;
+    }
+
+    /* Hide everything */
+    body * {
+        visibility: hidden !important;
+    }
+
+    /* Show only print section */
+    #print-section, 
+    #print-section * {
+        visibility: visible !important;
+    }
+
+    /* Force A4 layout */
+    #print-section {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        padding: 20mm;
+        box-sizing: border-box;
+        background: #ffffff;
+    }
+
+    /* Remove UI styling (make it document-like) */
+    .offer-letter-container {
+        max-width: none !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+
+    /* Hide layout elements explicitly */
+    .sidebar,
+    .navbar,
+    .dashboard-layout {
+        display: none !important;
+    }
+
+    /* Prevent content breaking awkwardly */
+    #print-section * {
+        page-break-inside: avoid;
+    }
+}

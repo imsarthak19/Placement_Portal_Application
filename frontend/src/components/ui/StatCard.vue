@@ -43,4 +43,22 @@ defineProps({
 .fw-extrabold {
     font-weight: 800;
 }
+
+/* Stat color utility classes */
+.bg-indigo-soft { background-color: #d8e6fb; }
+.text-indigo { color: #0d6eff; }
+.bg-pink-soft { background-color: #fff7e3; }
+.text-pink { color: #e2ce87; }
+.bg-emerald-soft { background-color: #ecfdf5; }
+.text-emerald { color: #059669; }
+.bg-orange-soft { background-color: #fff7ed; }
+.text-orange { color: #ea580c; }
+.bg-blue-soft { background-color: #e0f2fe; }
+.text-blue { color: #0369a1; }
+.bg-gold-soft { background-color: #fefce8; }
+.text-gold { color: #a16207; }
+
+.bg-primary-soft { background-color: rgba(120, 31, 25, 0.08); }
+.bg-success-soft { background-color: rgba(25, 135, 84, 0.08); }
+.bg-warning-soft { background-color: rgba(255, 193, 7, 0.12); }
 </style>

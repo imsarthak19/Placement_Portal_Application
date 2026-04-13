@@ -72,6 +72,7 @@ const menuConfigs = {
     { label: 'Dashboard', path: '/student-dash', icon: 'fas fa-th-large' },
     { label: 'Available Drives', path: '/student/drives', icon: 'fas fa-search' },
     { label: 'My Applications', path: '/student/applications', icon: 'fas fa-file-invoice' },
+    { label: 'Interviews', path: '/student/interviews', icon: 'fas fa-calendar-alt' },
     { label: 'My Profile', path: '/student/profile', icon: 'fas fa-user' }
   ]
 }
@@ -117,7 +118,7 @@ const handleLogout = () => {
 
 .logout-btn {
   background: transparent;
-  color: #ffb5b5; /* Light red for logout contrast */
+  color: #ffb5b5; /* Light red */
 }
 
 .logout-btn:hover {

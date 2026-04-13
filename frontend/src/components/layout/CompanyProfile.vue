@@ -380,17 +380,71 @@
 </script>
 
 <style scoped>
-/* Page Layout */
-.custom-card { transition: all 0.3s ease; }
-.company-logo-wrapper { width: 130px; height: 130px; overflow: hidden; }
-.icon-circle { width: 42px; height: 42px; border-radius: 50%; font-size: 1.1rem; transition: transform 0.2s ease; }
-.custom-contact-card:hover .icon-circle { transform: scale(1.05); }
-.icon-square { width: 32px; height: 32px; font-size: 1rem; }
-.contact-link { transition: color 0.2s ease; }
-.contact-link:hover { color: var(--color-primary) !important; }
-.company-description { line-height: 1.8; color: #4b5563; }
-.flash-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; min-width: 300px; pointer-events: none; }
-.flash-container > div { pointer-events: auto; }
-.fade-enter-active, .fade-leave-active { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+.custom-card {
+    transition: all 0.3s ease;
+}
+
+.company-logo-wrapper {
+    width: 130px;
+    height: 130px;
+    overflow: hidden;
+}
+
+.icon-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.custom-contact-card:hover .icon-circle {
+    transform: scale(1.05);
+}
+
+.icon-square {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+}
+
+.contact-link {
+    transition: color 0.2s ease;
+}
+
+.contact-link:hover {
+    color: var(--color-primary) !important;
+}
+
+.company-description {
+    line-height: 1.8;
+    color: #4b5563;
+}
+
+.flash-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 300px;
+    pointer-events: none;
+}
+
+.flash-container > div {
+    pointer-events: auto;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+}
 </style>

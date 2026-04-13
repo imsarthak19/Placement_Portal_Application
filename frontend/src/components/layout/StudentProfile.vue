@@ -409,8 +409,6 @@
 </script>
 
 <style scoped>
-
-/* Page Layout */
 .custom-card {
     transition: all 0.3s ease;
 }
@@ -421,7 +419,6 @@
     overflow: hidden;
 }
 
-/* Icons & Sidebar */
 .icon-circle {
     width: 42px;
     height: 42px;
@@ -447,7 +444,6 @@
     color: var(--color-primary) !important;
 }
 
-/* Notifications */
 .flash-container {
     position: fixed;
     top: 20px;
@@ -463,7 +459,6 @@
     pointer-events: auto;
 }
 
-/* Vue Transitions */
 .fade-enter-active,
 .fade-leave-active {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
