@@ -1,10 +1,17 @@
 <template>
-  <aside class="sidebar position-fixed start-0 top-0 vh-100 d-flex flex-column border-end shadow-sm">
+  <aside 
+    class="sidebar position-fixed start-0 top-0 vh-100 d-flex flex-column border-end shadow-sm"
+    :class="{'sidebar-open': isOpen}"
+  >
     <!-- Brand Logo -->
-    <div class="logo-container py-4 px-4 mb-1">
+    <div class="logo-container py-4 px-4 mb-1 d-flex align-items-center justify-content-between">
       <h2 class="h4 fw-bold mb-0 ls-tight dash-logo">
         <span class="logo-accent">Campus</span><span class="text-white">Bridge</span>
       </h2>
+      <!-- Mobile Close Button -->
+      <button @click="$emit('toggle')" class="btn text-white d-lg-none p-0 fs-4">
+          <i class="fas fa-times"></i>
+      </button>
     </div>
 
     <!-- User Profile Card -->
@@ -45,8 +52,11 @@ import { computed } from 'vue'
 import SidebarMenu from '@/components/sidebar/SidebarMenu.vue'
 
 const props = defineProps({
-  user: Object
+  user: Object,
+  isOpen: Boolean
 })
+
+defineEmits(['toggle'])
 
 const role = computed(() => props.user?.type)
 </script>
@@ -56,7 +66,11 @@ const role = computed(() => props.user?.type)
   width: 230px;
   background-color: var(--color-primary, #781f19);
   z-index: 1050;
-  transition: transform 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-open {
+    transform: translateX(0) !important;
 }
 
 .dash-logo {

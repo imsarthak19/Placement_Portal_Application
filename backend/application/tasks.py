@@ -177,10 +177,10 @@ def generate_monthly_placement_reports(self):
     return {"status": "batch_complete"}
 
 
-# 🎯 Daily Interview Reminders (Beat Job)
+# Daily Interview Reminders (Beat Job)
 @celery.task(bind=True)
 def send_daily_interview_reminders(self):
-    print("⏰ Running Scheduled Interview Reminders...")
+    print("Running Scheduled Interview Reminders...")
     from app import app
     with app.app_context():
         # Find interviews happening in the next 24 hours
