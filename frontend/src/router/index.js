@@ -36,7 +36,44 @@ import MyApplications from '@/views/student/MyApplications.vue'
 import StudentInterviewsView from '@/views/student/StudentInterviewsView.vue'
 import OfferView from '@/views/student/OfferView.vue'
 
+import viva from '@/views/viva.vue'
+import vivaDetail from '@/views/vivaDetail.vue'
+
+import data from '@/views/data.vue'
+import viva2 from '@/views/viva2.vue'
+import parent from '@/views/parent.vue'
+import { commonjs } from 'globals'
+
 const routes = [
+  {
+    path: '/parent',
+    name: 'parent',
+    component: parent
+  },
+
+  {
+    path: '/viva/msg',
+    name: 'vivaMsg',
+    component: viva2
+  },
+
+  {
+    path: '/viva/date',
+    name: 'date',
+    component: data
+
+  },
+  {
+    path: '/viva',
+    name: 'viva',
+    component: viva
+  },
+  {
+    path: '/viva/:id',
+    name: 'vivaDetail',
+    component: vivaDetail
+  },
+
   {
     path: '/',
     name: 'Home',

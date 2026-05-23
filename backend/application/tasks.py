@@ -6,6 +6,9 @@ import datetime
 from application.models import Drive, Application, Company, User, Student
 from application.database import db
 
+import sys
+sys.path.insert(0, '..')
+
 # Simulate email sending
 @celery.task(bind=True)
 def send_interview_email(self, student_email, drive_title):
@@ -247,3 +250,44 @@ def generate_platform_report_csv(self, admin_email):
         print(f"Platform Export task complete!")
 
     return {"status": "success", "email": admin_email}
+
+from datetime import timedelta
+@celery.task(bind=True)
+def get_recent_appointments(self):
+    from app import app
+    with app.app_context():
+        five_days_ago = datetime.now() - timedelta(days=5)
+
+        records = Application.query.filter(Application.date >= five_days_ago).all()
+
+        result = [{
+            'id': a.id,
+            'drive': a.drive.tilte,
+            'applicant_name': a.student.name,
+        } for a in records
+        ]
+        return (result)
+
+
+
+@celery.task(bind=True)
+def new_task(self):
+    from app import app
+    with app.app_context():
+        five = datetime.now() -  timedelta(days=5)
+
+        records = Application.query.filter(Application.created_at >= five).all()
+
+        result = [{
+                        "id": a.id,
+                        "applicant_name": a.student.user.name,
+        } for a in records
+        ]
+
+        return (result)
+    
+
+
+@celery.task
+def sum(a,b):
+    return (a+b)

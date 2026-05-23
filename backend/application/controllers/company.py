@@ -63,7 +63,7 @@ def update_drive(drive_id):
     
     # Allow admin and recruiter
     if user["type"] not in ["recruiter", "admin"]:
-         return jsonify({"error": "Unauthorized"}), 403
+        return jsonify({"error": "Unauthorized"}), 403
     
     drive = Drive.query.get(drive_id)
     if not drive:

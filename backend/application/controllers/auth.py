@@ -68,7 +68,7 @@ def login():
     # JWT Implemented here
     token = create_access_token(identity={
         "id": account.id,
-        "type": account_type,
+        "type": account_type, 
         "username": account.username
     })
 
